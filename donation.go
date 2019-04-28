@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -92,6 +93,25 @@ func (d *Donation) GenerateReferenceCode(tx *sqlx.Tx) error {
 	return nil
 }
 
+/*https://link.justgiving.com/v1/charity/donate/charityId/2096
+?amount=10.00
+&currency=USD
+&reference=89302483&
+exitUrl=http%3A%2F%2Flocalhost%3A9000%2Fconfirm%2F8930248302840%3FjgDonationId%3DJUSTGIVING-DONATION-ID
+&message=Woohoo!%20Let's%20fight%20cancer!
+*/
+func (d *Donation) GetDonationLink() string {
+	urls := url.Values{}
+	if d.Message != "" {
+		urls.Set("message", d.Message)
+	}
+
+	urls.Set("currency", d.CurrencyCode)
+	urls.Set("amount", AmountToString(d.Amount))
+
+	return fmt.Sprintf("https://link.justgiving.com/v1/charity/donate/charityId/%d?", d.CharityId) + urls.Encode()
+}
+
 func (d *Donation) getSetMap() M {
 	return M{
 		"charity_id":     d.CharityId,
@@ -106,9 +126,16 @@ func (d *Donation) getSetMap() M {
 }
 
 func (d *Donation) Insert(tx *sqlx.Tx) error {
-	if d.ReferenceCode == "" {
-		return ErrMissingReferenceCode
+	if d.ReferenceCode != "" {
+		return ErrAlreadyInserted
 	}
+
+	err := d.GenerateReferenceCode(tx)
+
+	if err != nil {
+		return err
+	}
+
 	return DonationInsertBuilder.
 		SetMap(d.getSetMap()).
 		Suffix(RETURNING_ID).

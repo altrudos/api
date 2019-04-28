@@ -3,6 +3,7 @@ package charityhonor
 import (
 	"errors"
 	"os"
+	"strconv"
 )
 
 type M map[string]interface{}
@@ -25,4 +26,27 @@ func GetColumns(colMap map[string]string) []string {
 		v = append(v, val)
 	}
 	return v
+}
+
+func AmountToString(amount int) string {
+	str := strconv.Itoa(amount)
+
+	if len(str) == 1 {
+		str = "0" + str
+	}
+
+	first := str[:len(str)-2]
+	last := str[len(str)-2:]
+
+	if first == "" {
+		first = "0"
+	}
+
+	if len(last) == 1 {
+		last = last + "0"
+	} else if len(last) == 0 {
+		last = "00"
+	}
+
+	return first + "." + last
 }

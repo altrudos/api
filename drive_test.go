@@ -53,40 +53,4 @@ func TestDonationGenerate(t *testing.T) {
 		tx.Rollback()
 		t.Fatal(err)
 	}
-
-	donation, err := d.CreateDonation(tx)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	donation.CharityId = 1
-	donation.Amount = 2000
-
-	if err := donation.Insert(tx); err != nil {
-		t.Error(err)
-	}
-
-	if donation.ReferenceCode == "" {
-		t.Errorf("No reference code was created")
-	}
-
-	if donation.DriveId != d.Id {
-		t.Error("Drive Id doesn't match")
-	}
-
-	tx.Commit()
-
-	tx, err = db.Beginx()
-
-	copy, err := GetDonationByReferenceCode(tx, donation.ReferenceCode)
-
-	if err != nil {
-		t.Error(err)
-	}
-
-	if copy == nil || copy.ReferenceCode != donation.ReferenceCode {
-		t.Error("Ref code not made")
-	}
-
-	tx.Rollback()
 }

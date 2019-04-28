@@ -53,18 +53,6 @@ func (d *Drive) GenerateUri() error {
 	return nil
 }
 
-func (d *Drive) CreateDonation(tx *sqlx.Tx) (*Donation, error) {
-	don := &Donation{
-		DriveId: d.Id,
-	}
-
-	if err := don.GenerateReferenceCode(tx); err != nil {
-		return nil, err
-	}
-
-	return don, nil
-}
-
 func GetDriveByUri(uri string) (*Drive, error) {
 	return nil, errors.New("Not implemented")
 }
