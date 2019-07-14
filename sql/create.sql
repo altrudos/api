@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS drives (
   id SERIAL PRIMARY KEY,
   uri TEXT NOT NULL UNIQUE,
-  amount BIGINT NOT NULL DEFAULT 0,
+  amount NUMERIC NOT NULL DEFAULT 0,
   source_url TEXT,
   reddit_comment_id BIGINT,
   reddit_username TEXT,
@@ -14,7 +14,8 @@ CREATE TABLE IF NOT EXISTS charities (
   name TEXT,
   logo_url TEXT,
   description TEXT,
-  summary TEXT
+  summary TEXT,
+  jg_charity_id BIGINT
 );
 
 CREATE TABLE IF NOT EXISTS donations (
@@ -25,9 +26,11 @@ CREATE TABLE IF NOT EXISTS donations (
   created TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   reference_code TEXT NOT NULL UNIQUE,
   currency_code TEXT,
-  amount BIGINT,
+  amount NUMERIC,
+  local_amount NUMERIC,
+  local_currency_code TEXT,
   donor_name TEXT,
   message TEXT,
   status TEXT NOT NULL DEFAULT 'pending',
-  message_visible BOOLEAN NOT NULL DEFAULT TRUE
+  message_visible BOOLEAN NOT NULL DEFAULT FALSE
 );

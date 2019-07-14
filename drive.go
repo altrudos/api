@@ -1,6 +1,7 @@
 package charityhonor
 
 import (
+	"database/sql"
 	"errors"
 	"time"
 
@@ -11,16 +12,87 @@ var (
 	TABLE_DRIVES = "drives"
 )
 
+var DRIVE_COLUMNS map[string]string = map[string]string{
+	"Id":        "id",
+	"SourceUrl": "source_url",
+	"Amount":    "amount",
+}
+
 var (
 	DriveInsertBuilder = QueryBuilder.Insert(TABLE_DRIVES)
+	DriveSelectBuilder = QueryBuilder.Select(GetColumnsString(DRIVE_COLUMNS)).From(TABLE_DRIVES)
 )
 
 type Drive struct {
-	Id        int `json:"id" db:"id"`
-	SourceUrl string
+	Id        int    `json:"id" db:"id"`
+	SourceUrl string `json:"source_url" db:"source_url"`
 	Amount    int
 	Created   time.Time
 	Uri       string
+	Name      string
+	Source    Source
+}
+
+func GetDriveByUri(uri string) (*Drive, error) {
+	return nil, errors.New("Not implemented")
+}
+
+func GetDriveById(tx sqlx.Queryer, id int) (*Drive, error) {
+	return &Drive{
+		Name: "Fake",
+	}, nil
+}
+
+func GetDriveBySourceUrl(db *sqlx.DB, url string) (*Drive, error) {
+	query, args, err := DriveSelectBuilder.
+		From(TABLE_DRIVES).
+		Where("source_url=?", url).
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+	ds := make([]*Drive, 0)
+	err = sqlx.Select(db, &ds, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	if len(ds) > 1 {
+		return nil, ErrTooManyFound
+	}
+	if len(ds) == 0 {
+		return nil, sql.ErrNoRows
+	}
+
+	return ds[0], nil
+}
+
+func GetOrCreateDriveBySourceUrl(db *sqlx.DB, url string) (*Drive, error) {
+	drive, err := GetDriveBySourceUrl(db, url)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			drive = &Drive{
+				SourceUrl: url,
+			}
+			tx, err := db.Beginx()
+			if err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+			err = drive.Insert(tx)
+			if err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+			if err := tx.Commit(); err != nil {
+				return nil, err
+			}
+
+			return drive, nil
+		}
+		return nil, err
+	}
+
+	return drive, nil
 }
 
 func (d *Drive) Insert(tx *sqlx.Tx) error {
@@ -53,6 +125,10 @@ func (d *Drive) GenerateUri() error {
 	return nil
 }
 
-func GetDriveByUri(uri string) (*Drive, error) {
-	return nil, errors.New("Not implemented")
+func (d *Drive) GenerateDonation() *Donation {
+	dono := &Donation{
+		DriveId: d.Id,
+	}
+
+	return dono
 }

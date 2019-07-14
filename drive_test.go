@@ -36,21 +36,38 @@ func TestDriveInsert(t *testing.T) {
 	tx.Rollback()
 }
 
-func TestDonationGenerate(t *testing.T) {
+func TestDriveSelect(t *testing.T) {
 	db := GetTestDb()
 	tx, err := db.Beginx()
+	source := "https://www.reddit.com/r/pathofexile/comments/c7wdss/for_fellow_ssf_bow_users_the_lion_card_farming/eshxtna/"
 
+	//Do some cleanup
+	b := QueryBuilder.Delete(TABLE_DRIVES).Where("source_url=?", source).RunWith(db)
+	_, err = b.Exec()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	d := Drive{
-		SourceUrl: "https://reddit.com/r/gaming",
+		SourceUrl: source,
 	}
 
 	err = d.Insert(tx)
 	if err != nil {
 		tx.Rollback()
 		t.Fatal(err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		t.Fatal(err)
+	}
+
+	drive, err := GetDriveBySourceUrl(db, source)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if drive.SourceUrl != source {
+		t.Error("Wrong source URL returned")
 	}
 }

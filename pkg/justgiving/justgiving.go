@@ -3,38 +3,115 @@ package justgiving
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
 	"time"
 )
 
-var mode = "sandbox"
+type Mode string
 
-type DonationDetails struct {
+var (
+	ErrDonationNotFound = errors.New("Could not find donation")
+)
+
+var (
+	ModeStaging    Mode = "staging"
+	ModeProduction Mode = "production"
+)
+
+type Donation struct {
+	Id                  int       `json:"int"`
+	Amount              string    `json:"amount"`
+	CurrencyCode        string    `json:"currencyCode"`
+	LocalAmount         string    `json:"donorLocalAmount"`
+	LocalCurrencyCode   string    `json:"donorLocalCurrencyCode"`
+	Date                time.Time //This needs to be calculated by us cause they give us a weird date format
+	DateString          string    `json:"donationDate"`
+	ThirdPartyReference string    `json:'thirdPartyReference"`
+	Status              string    `json:"status"`
+}
+
+type Charity struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	WebsiteUrl  string `json:"websiteUrl"`
+	Id          int    `json:"id"`
 }
 
 type Params struct {
 	Path   string
 	Method string
+	Url    string
+	Body   string
+	Debug  bool
 }
 
 type JustGiving struct {
-	Mode  string
+	Mode  Mode
 	AppId string
 }
 
-func (jg *JustGiving) Request(params *Params, data interface{}, body interface{}) error {
-	url := "https://api."
+func GetStringInBetween(str string, start string, end string) (result string) {
+	s := strings.Index(str, start)
+	if s == -1 {
+		return
+	}
+	s += len(start)
+	e := strings.Index(str, end)
+	return str[s:e]
+}
 
-	if jg.Mode == "sandbox" {
-		url += "sandbox."
+func (d *Donation) GetDate() time.Time {
+	num := GetStringInBetween(d.DateString, "Date(", "+")
+	nanos, _ := strconv.Atoi(num)
+	seconds := nanos / 1000
+	date := time.Unix(int64(seconds), 0)
+	return date
+}
+
+func (d *Donation) ConvertAmount(str string) float64 {
+	amt, err := strconv.ParseFloat(str, 64)
+	if err != nil {
+		return float64(0)
+	}
+	return amt
+
+}
+
+func (d *Donation) GetAmount() float64 {
+	return d.ConvertAmount(d.Amount)
+}
+
+func (d *Donation) GetLocalAmount() float64 {
+	return d.ConvertAmount(d.LocalAmount)
+}
+
+func (jg *JustGiving) Request(params *Params, send interface{}, receive interface{}) error {
+	if jg.AppId == "" {
+		return errors.New("No AppId found in JustGiving")
 	}
 
-	url += ".justgiving.com/" + jg.AppId + "/" + params.Path
+	if jg.Mode == "" {
+		return errors.New("No mode set. Must be either staging or production")
+	}
 
-	req, err := http.NewRequest(params.Method, params.Url, nil)
+	url := "https://api."
+
+	if jg.Mode == ModeStaging {
+		url += "staging."
+	}
+
+	url += "justgiving.com/" + jg.AppId + "/" + params.Path
+
+	req, err := http.NewRequest(params.Method, url, nil)
 	if err != nil {
 		return err
 	}
+	fmt.Println("url", url)
 	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{Timeout: 10 * time.Second}
 	res, err := client.Do(req)
@@ -42,31 +119,102 @@ func (jg *JustGiving) Request(params *Params, data interface{}, body interface{}
 		return err
 	}
 	defer res.Body.Close()
-	err = json.NewDecoder(res.Body).Decode(&body)
+
+	bodyBytes, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+	bodyString := string(bodyBytes)
+	params.Body = bodyString
+
+	if params.Debug {
+		fmt.Println("Body", bodyString)
+	}
+
+	err = json.Unmarshal(bodyBytes, &receive)
 	if err != nil {
 		return err
 	}
 	if res.StatusCode > 204 {
-		err = errors.New("Status code too high")
+		err = errors.New(fmt.Sprintf("Status code too high: %d", res.StatusCode))
+		fmt.Println("body", bodyString)
 		return err
 	}
 	return nil
 }
 
-func (jg *JustGiving) RetrieveDonationDetailsByReference(reference string) {
-	params := Params{
-		Path:   "/v1/donation/ref/" + reference,
+func (jg *JustGiving) GetCharityById(id int) (*Charity, error) {
+	params := &Params{
+		Path:   fmt.Sprintf("v1/charity/%d", id),
 		Method: http.MethodGet,
 	}
 
-	donation := Get
+	charity := &Charity{}
+	err := jg.Request(params, nil, charity)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("params.Body", params.Body)
+
+	return charity, nil
 }
 
-func (jg *JustGiving) RetrieveDonationDetails(reference string) {
-	params := Params{
-		Path:   "/v1/donation/ref/" + reference,
+func (jg *JustGiving) GetDonationByReference(reference string) (*Donation, error) {
+	params := &Params{
+		Path:   "v1/donation/ref/" + reference,
+		Method: http.MethodGet,
+		Debug:  true,
+	}
+
+	type Response struct {
+		Donations  []*Donation    `json:"donations"`
+		Pagination map[string]int `json:"pagination"`
+	}
+
+	var resp Response
+	err := jg.Request(params, nil, &resp)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("resp", resp)
+
+	if len(resp.Donations) == 0 {
+		return nil, ErrDonationNotFound
+	}
+
+	if len(resp.Donations) > 1 {
+		return nil, errors.New("Too many donations with that reference found.")
+	}
+
+	dono := resp.Donations[0]
+	return dono, nil
+}
+
+func (jg *JustGiving) GetDonationById(id int) (*Donation, error) {
+	params := &Params{
+		Path:   "v1/donation/" + strconv.Itoa(id),
 		Method: http.MethodGet,
 	}
 
-	donation := Get
+	var dono Donation
+	err := jg.Request(params, nil, dono)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println("params.Body", params.Body)
+	return &dono, nil
+}
+
+func (jg *JustGiving) GetDonationLink(charityId int, query url.Values) string {
+	domain := "https://link."
+
+	if jg.Mode == ModeStaging {
+		domain += "staging."
+	}
+
+	domain += "justgiving.com"
+
+	return fmt.Sprintf("%s/v1/charity/donate/charityId/%d?", domain, charityId) + query.Encode()
 }

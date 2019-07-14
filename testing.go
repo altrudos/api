@@ -13,10 +13,10 @@ func GetTestDb() *sqlx.DB {
 		return db
 	}
 	url := GetEnv("TESTPGURL", "postgresql://charityhonor@localhost/charityhonor?sslmode=disable")
-	fmt.Println("url", url)
 	var err error
 	db, err = GetPostgresConnection(url)
 	if err != nil {
+		fmt.Println("NO CONNECTION")
 		panic(err)
 	}
 
