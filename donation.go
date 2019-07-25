@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	ErrMissingReferenceCode = errors.New("Donation is missing reference code")
+	ErrMissingReferenceCode = errors.New("donation is missing reference code")
 )
 
 var (
@@ -100,7 +100,7 @@ func GetDonationByField(tx sqlx.Queryer, field string, val interface{}) (*Donati
 	}
 
 	if d.CharityId == 0 {
-		return nil, errors.New("Charity has an ID of 0")
+		return nil, errors.New("charity has an ID of 0")
 	}
 
 	charity, err := GetCharityById(tx, d.CharityId)
