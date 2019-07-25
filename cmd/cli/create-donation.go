@@ -4,7 +4,7 @@ import (
 	"errors"
 	"flag"
 
-	. "github.com/vindexus/ch-api"
+	. "github.com/charityhonor/ch-api"
 )
 
 /**

@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/vindexus/ch-api/pkg/justgiving"
+	"github.com/charityhonor/ch-api/pkg/justgiving"
 )
 
 var numTestDrives = 0

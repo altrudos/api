@@ -1,6 +1,6 @@
 package charityhonor
 
-import "github.com/vindexus/ch-api/pkg/justgiving"
+import "github.com/charityhonor/ch-api/pkg/justgiving"
 
 var defaultJG *justgiving.JustGiving
 

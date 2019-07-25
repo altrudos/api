@@ -10,7 +10,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/satori/go.uuid"
-	"github.com/vindexus/ch-api/pkg/justgiving"
+	"github.com/charityhonor/ch-api/pkg/justgiving"
 )
 
 var (

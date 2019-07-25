@@ -3,7 +3,7 @@ package charityhonor
 import (
 	"testing"
 
-	"github.com/vindexus/ch-api/pkg/justgiving"
+	"github.com/charityhonor/ch-api/pkg/justgiving"
 )
 
 func TestGetCharity(t *testing.T) {
