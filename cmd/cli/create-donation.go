@@ -54,17 +54,18 @@ func createDonation(name string, args []string) error {
 		return err
 	}
 
-	spl("Mode:     %s", lyellow(jg.Mode))
-	spl("Charity:  %s", green(charity.Name))
-	spl("Drive:    %s", blue(drive.Name))
-	spl("Message:  %s", maybeEmpty(message, lyellow))
-	spl("Amount:   %s", lgreen(AmountToString(amount)))
-	spl("Currency: %s", lyellow(currency))
-
 	donation := drive.GenerateDonation()
 	donation.CharityId = charityid
 	donation.Amount = amount
 	donation.Message = message
+	donation.CurrencyCode = currency
+
+	spl("Mode:     %s", lyellow(jg.Mode))
+	spl("Charity:  %s", green(charity.Name))
+	spl("Drive:    %s", blue(drive.Name))
+	spl("Message:  %s", maybeEmpty(donation.Message, lyellow))
+	spl("Amount:   %s", lgreen(AmountToString(donation.Amount)))
+	spl("Currency: %s", lyellow(donation.CurrencyCode))
 
 	tx, err := db.Beginx()
 	if err != nil {
@@ -80,6 +81,10 @@ func createDonation(name string, args []string) error {
 		return err
 	}
 	spl("Donation Link: %s", lblue(link))
+
+	if err := tx.Commit(); err != nil {
+		return err
+	}
 
 	return nil
 }

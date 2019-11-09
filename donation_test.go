@@ -145,6 +145,16 @@ func TestDonationCRUD(t *testing.T) {
 	if dono3.Amount != newAmount {
 		t.Errorf("Expected amount %v got %v", newAmount, dono3.Amount)
 	}
+
+	// Get multiple donations
+	donos, err := GetDonations(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(donos) == 0 {
+		t.Error("Found 0 donations")
+	}
 }
 
 func TestDonationChecking(t *testing.T) {

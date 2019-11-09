@@ -126,6 +126,27 @@ func GetDonationByReferenceCode(tx sqlx.Queryer, code string) (*Donation, error)
 	return GetDonationByField(tx, "reference_code", code)
 }
 
+func GetDonations(tx sqlx.Queryer) ([]*Donation, error) {
+	query, args, err := QueryBuilder.
+		Select(GetColumns(DONATION_COLUMNS)...).
+		From(TABLE_DONATIONS).
+		OrderBy("created DESC").
+		Limit(10).
+		ToSql()
+	fmt.Println("query", query)
+	fmt.Println("args", args)
+	fmt.Println("err", err)
+	if err != nil {
+		return nil, err
+	}
+	donos := make([]*Donation, 0)
+	err = sqlx.Select(tx, &donos, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	return donos, nil
+}
+
 func (d *Donation) GenerateReferenceCode(tx *sqlx.Tx) error {
 	exists := false
 	for d.ReferenceCode == "" || exists == true {
