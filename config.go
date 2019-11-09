@@ -19,7 +19,7 @@ func MustGetDefaultJustGiving() *justgiving.JustGiving {
 
 		defaultJG = &justgiving.JustGiving{
 			AppId: appId,
-			Mode:  justgiving.Mode(appId),
+			Mode:  justgiving.Mode(mode),
 		}
 	}
 

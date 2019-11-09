@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"flag"
+	"fmt"
 
 	. "github.com/charityhonor/ch-api"
 )
@@ -17,6 +18,7 @@ import (
 func createDonation(name string, args []string) error {
 	db := MustGetDefaultDb()
 	jg := MustGetDefaultJustGiving()
+	fmt.Println("jg", jg)
 	var amount float64
 	var currency string
 	var message string
@@ -35,11 +37,11 @@ func createDonation(name string, args []string) error {
 	}
 
 	if charityid == 0 {
-		return errors.New("charityid is required")
+		return errors.New("--charityid is required. It is the postgres ID in our database.")
 	}
 
 	if sourceUrl == "" {
-		return errors.New("The source URL is required")
+		return errors.New("--url is required. It is the source URL to honor.")
 	}
 
 	charity, err := GetCharityById(db, charityid)
@@ -52,6 +54,7 @@ func createDonation(name string, args []string) error {
 		return err
 	}
 
+	spl("Mode:     %s", lyellow(jg.Mode))
 	spl("Charity:  %s", green(charity.Name))
 	spl("Drive:    %s", blue(drive.Name))
 	spl("Message:  %s", maybeEmpty(message, lyellow))
@@ -72,7 +75,11 @@ func createDonation(name string, args []string) error {
 		return err
 	}
 	spl("")
-	spl("Donation Link: %s", lblue(donation.GetDonationLink(jg)))
+	link, err := donation.GetDonationLink(jg)
+	if err != nil {
+		return err
+	}
+	spl("Donation Link: %s", lblue(link))
 
 	return nil
 }

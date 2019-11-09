@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jmoiron/sqlx"
 	"github.com/charityhonor/ch-api/pkg/justgiving"
+	"github.com/jmoiron/sqlx"
 )
 
 var numTestDrives = 0
@@ -33,6 +33,7 @@ func getDriveForTesting() (*Drive, *sqlx.Tx, *sqlx.DB) {
 
 func TestDonationCRUD(t *testing.T) {
 	drive, tx, db := getDriveForTesting()
+
 	donation := Donation{
 		DriveId:      drive.Id,
 		CharityId:    1,
@@ -85,7 +86,35 @@ func TestDonationCRUD(t *testing.T) {
 
 	jg := justgiving.GetTestJG()
 
-	url := dono2.GetDonationLink(jg)
+	donError := Donation{}
+
+	_, err = donError.GetDonationLink(jg)
+	if err == nil {
+		t.Error("Get donation link should fail if missing data")
+	}
+
+	donError.Amount = 30
+	_, err = donError.GetDonationLink(jg)
+	if err == nil {
+		t.Error("Get donation link should fail if missing amount")
+	}
+
+	donError.CurrencyCode = "USD"
+	_, err = donError.GetDonationLink(jg)
+	if err == nil {
+		t.Error("Get donation link should fail if missing currency code")
+	}
+
+	donError.CharityId = 1
+	_, err = donError.GetDonationLink(jg)
+	if err == nil {
+		t.Error("Get donation link should fail if missing charity")
+	}
+
+	url, err := dono2.GetDonationLink(jg)
+	if err != nil {
+		t.Fatal(err)
+	}
 	fmt.Println("url", url)
 
 	if !strings.Contains(url, strconv.Itoa(justgiving.Fixtures.CharityId)) {

@@ -7,10 +7,10 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/charityhonor/ch-api/pkg/justgiving"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/satori/go.uuid"
-	"github.com/charityhonor/ch-api/pkg/justgiving"
 )
 
 var (
@@ -25,6 +25,12 @@ var (
 	DonationAccepted DonationStatus = "Accepted"
 	DonationPending  DonationStatus = "Pending"
 	DonationRejected DonationStatus = "Rejected"
+)
+
+var (
+	ErrNoCurrencyCode = errors.New("no currency code")
+	ErrNoAmount       = errors.New("no donation amount")
+	ErrNoCharity      = errors.New("no charity")
 )
 
 var (
@@ -207,17 +213,29 @@ func (d *Donation) Save(tx *sqlx.Tx) error {
 exitUrl=http%3A%2F%2Flocalhost%3A9000%2Fconfirm%2F8930248302840%3FjgDonationId%3DJUSTGIVING-DONATION-ID
 &message=Woohoo!%20Let's%20fight%20cancer!
 */
-func (d *Donation) GetDonationLink(jg *justgiving.JustGiving) string {
+func (d *Donation) GetDonationLink(jg *justgiving.JustGiving) (string, error) {
 	urls := url.Values{}
 	if d.Message != "" {
 		urls.Set("message", d.Message)
+	}
+
+	if d.CurrencyCode == "" {
+		return "", ErrNoCurrencyCode
+	}
+
+	if d.Amount == 0 {
+		return "", ErrNoAmount
+	}
+
+	if d.Charity == nil {
+		return "", ErrNoCharity
 	}
 
 	urls.Set("currency", d.CurrencyCode)
 	urls.Set("amount", AmountToString(d.Amount))
 	urls.Set("reference", d.ReferenceCode)
 
-	return jg.GetDonationLink(d.Charity.JustGivingCharityId, urls)
+	return jg.GetDonationLink(d.Charity.JustGivingCharityId, urls), nil
 }
 
 func (d *Donation) GetJustGivingDonation(jg *justgiving.JustGiving) (*justgiving.Donation, error) {
