@@ -111,7 +111,6 @@ func (jg *JustGiving) Request(params *Params, send interface{}, receive interfac
 	if err != nil {
 		return err
 	}
-	fmt.Println("url", url)
 	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{Timeout: 10 * time.Second}
 	res, err := client.Do(req)
@@ -137,7 +136,6 @@ func (jg *JustGiving) Request(params *Params, send interface{}, receive interfac
 	}
 	if res.StatusCode > 204 {
 		err = errors.New(fmt.Sprintf("Status code too high: %d", res.StatusCode))
-		fmt.Println("body", bodyString)
 		return err
 	}
 	return nil
@@ -154,8 +152,6 @@ func (jg *JustGiving) GetCharityById(id int) (*Charity, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println("params.Body", params.Body)
 
 	return charity, nil
 }
@@ -177,8 +173,6 @@ func (jg *JustGiving) GetDonationByReference(reference string) (*Donation, error
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println("resp", resp)
 
 	if len(resp.Donations) == 0 {
 		return nil, ErrDonationNotFound
@@ -203,7 +197,6 @@ func (jg *JustGiving) GetDonationById(id int) (*Donation, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("params.Body", params.Body)
 	return &dono, nil
 }
 

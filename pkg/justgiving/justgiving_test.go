@@ -1,7 +1,6 @@
 package justgiving
 
 import (
-	"fmt"
 	"testing"
 	"time"
 )
@@ -44,12 +43,10 @@ func TestGetDonationByReferenceCode(t *testing.T) {
 
 func TestGetDonationById(t *testing.T) {
 	jg := GetTestJG()
-	dono, err := jg.GetDonationById(483905)
+	_, err := jg.GetDonationById(483905)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	fmt.Println("dono", dono)
 }
 
 func TestGetCharity(t *testing.T) {
@@ -60,7 +57,6 @@ func TestGetCharity(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	fmt.Println("charity", charity)
 	expectedName := "The Demo Charity"
 	if charity.Name != expectedName {
 		t.Errorf("Expected charity with name '%s' but got '%s'", expectedName, charity.Name)

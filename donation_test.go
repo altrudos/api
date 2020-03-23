@@ -1,7 +1,6 @@
 package charityhonor
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"testing"
@@ -9,6 +8,7 @@ import (
 
 	"github.com/charityhonor/ch-api/pkg/justgiving"
 	"github.com/jmoiron/sqlx"
+	. "github.com/monstercat/pgnull"
 )
 
 var numTestDrives = 0
@@ -39,8 +39,8 @@ func TestDonationCRUD(t *testing.T) {
 		CharityId:    1,
 		Amount:       float64(12.34),
 		CurrencyCode: "USD",
-		DonorName:    "Vindexus",
-		Message:      `I'm just trying this <strong>OUT!</strong>`,
+		DonorName:    NullString{"Vindexus", true},
+		Message:      NullString{`I'm just trying this <strong>OUT!</strong>`, true},
 	}
 
 	if err := donation.Create(tx); err != nil {
@@ -60,7 +60,6 @@ func TestDonationCRUD(t *testing.T) {
 	tx, err := db.Beginx()
 	dono2, err := GetDonationByReferenceCode(tx, donation.ReferenceCode)
 	if err != nil {
-		fmt.Println("ERR!")
 		t.Error(err)
 	}
 
@@ -115,7 +114,6 @@ func TestDonationCRUD(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println("url", url)
 
 	if !strings.Contains(url, strconv.Itoa(justgiving.Fixtures.CharityId)) {
 		t.Errorf("Url should contain %v, got %s", justgiving.Fixtures.CharityId, url)
@@ -127,7 +125,7 @@ func TestDonationCRUD(t *testing.T) {
 	newAmount := float64(1337)
 	newName := "Colin 9430843290"
 	dono2.Amount = newAmount
-	dono2.DonorName = newName
+	dono2.DonorName = NullString{newName, true}
 	err = dono2.Save(tx)
 	if err != nil {
 		t.Fatal(err)
@@ -138,7 +136,7 @@ func TestDonationCRUD(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if dono3.DonorName != newName {
+	if dono3.DonorName.String != newName {
 		t.Errorf("Expected name %v got %v", newName, dono3.DonorName)
 	}
 
@@ -147,13 +145,33 @@ func TestDonationCRUD(t *testing.T) {
 	}
 
 	// Get multiple donations
-	donos, err := GetDonations(db)
+	donos, err := GetDonations(db, &DonationOperators{})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	if len(donos) == 0 {
 		t.Error("Found 0 donations")
+	}
+}
+
+func TestGetDonationsToCheck(t *testing.T) {
+	db := GetTestDb()
+
+	// Get multiple donations
+	donos, err := GetDonationsToCheck(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(donos) != 2 {
+		t.Errorf("Expected 2 donations, found %d", len(donos))
+	}
+
+	for i, dono := range donos {
+		if dono.Status != DonationPending {
+			t.Errorf("[%d] Expected pending, found %s", i, dono.Status)
+		}
 	}
 }
 

@@ -3,7 +3,6 @@ package main
 import (
 	"errors"
 	"flag"
-	"fmt"
 
 	. "github.com/charityhonor/ch-api"
 )
@@ -18,7 +17,6 @@ import (
 func createDonation(name string, args []string) error {
 	db := MustGetDefaultDb()
 	jg := MustGetDefaultJustGiving()
-	fmt.Println("jg", jg)
 	var amount float64
 	var currency string
 	var message string

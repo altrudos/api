@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set +x
-host=${2:-localhost}
-psql -h $host -f sql/drop.sql -U charityhonor charityhonor
-psql -h $host -f sql/create.sql -U charityhonor charityhonor
-psql -h $host -f sql/seed.sql -U charityhonor charityhonor
+host=${1:-localhost}
+user=${2:-charityhonor}
+db=${3:-db}
+psql -h $host -f sql/drop.sql -U $user $db
+psql -h $host -f sql/create.sql -U $user $db
+psql -h $host -f sql/seed.sql -U $user $db

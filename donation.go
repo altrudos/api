@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"time"
 
+	. "github.com/monstercat/pgnull"
+
 	"github.com/charityhonor/ch-api/pkg/justgiving"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
@@ -80,14 +82,20 @@ type Donation struct {
 	Created       time.Time
 	LastChecked   pq.NullTime `db:"last_checked"`
 	Status        DonationStatus
-	ReferenceCode string  `db:"reference_code"`
-	DriveId       int     `db:"drive_id"`
-	CharityId     int     `db:"charity_id"`
-	Amount        float64 `db:"amount"`
-	DonorName     string  `db:"donor_name"`
-	Message       string  `db:"message"`
-	CurrencyCode  string  `db:"currency_code"`
+	ReferenceCode string     `db:"reference_code"`
+	DriveId       int        `db:"drive_id"`
+	CharityId     int        `db:"charity_id"`
+	Amount        float64    `db:"amount"`
+	DonorName     NullString `db:"donor_name"`
+	Message       NullString `db:"message"`
+	CurrencyCode  string     `db:"currency_code"`
 	Charity       *Charity
+}
+
+// Used in queries
+type DonationOperators struct {
+	*BaseOperator
+	Statuses []DonationStatus
 }
 
 func GetDonationByField(tx sqlx.Queryer, field string, val interface{}) (*Donation, error) {
@@ -126,21 +134,35 @@ func GetDonationByReferenceCode(tx sqlx.Queryer, code string) (*Donation, error)
 	return GetDonationByField(tx, "reference_code", code)
 }
 
-func GetDonations(tx sqlx.Queryer) ([]*Donation, error) {
-	query, args, err := QueryBuilder.
+func GetDonationsToCheck(tx sqlx.Queryer) ([]*Donation, error) {
+	ops := &DonationOperators{
+		BaseOperator: &BaseOperator{
+			SortField: "next_check",
+			SortDir:   SortAsc,
+		},
+		Statuses: []DonationStatus{DonationPending},
+	}
+
+	return GetDonations(tx, ops)
+}
+
+func GetDonations(tx sqlx.Queryer, ops *DonationOperators) ([]*Donation, error) {
+	query := QueryBuilder.
 		Select(GetColumns(DONATION_COLUMNS)...).
-		From(TABLE_DONATIONS).
-		OrderBy("created DESC").
-		Limit(10).
-		ToSql()
-	fmt.Println("query", query)
-	fmt.Println("args", args)
-	fmt.Println("err", err)
+		From(TABLE_DONATIONS)
+
+	if len(ops.Statuses) > 0 {
+		query = query.Where("status = ANY (?)", StatusesPQStringArray(ops.Statuses))
+	}
+
+	sql, args, err := query.ToSql()
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("sql", sql)
+	fmt.Println("args", args)
 	donos := make([]*Donation, 0)
-	err = sqlx.Select(tx, &donos, query, args...)
+	err = sqlx.Select(tx, &donos, sql, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -217,8 +239,6 @@ func (d *Donation) Insert(tx *sqlx.Tx) error {
 
 func (d *Donation) Save(tx *sqlx.Tx) error {
 	setMap := d.getSetMap()
-	fmt.Println("setMap", setMap)
-	fmt.Println("d.Id", d.Id)
 	_, err := DonationUpdateBuilder.
 		SetMap(setMap).
 		Where("id=?", d.Id).
@@ -236,8 +256,8 @@ exitUrl=http%3A%2F%2Flocalhost%3A9000%2Fconfirm%2F8930248302840%3FjgDonationId%3
 */
 func (d *Donation) GetDonationLink(jg *justgiving.JustGiving) (string, error) {
 	urls := url.Values{}
-	if d.Message != "" {
-		urls.Set("message", d.Message)
+	if d.Message.Valid && d.Message.String != "" {
+		urls.Set("message", d.Message.String)
 	}
 
 	if d.CurrencyCode == "" {

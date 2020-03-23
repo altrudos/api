@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS donations (
   drive_id BIGINT REFERENCES drives(id),
   charity_id BIGINT REFERENCES charities(id),
   last_checked TIMESTAMPTZ,
+  next_check TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   created TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   reference_code TEXT NOT NULL UNIQUE,
   currency_code TEXT,

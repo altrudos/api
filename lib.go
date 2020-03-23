@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+
+	"github.com/lib/pq"
 )
 
 type M map[string]interface{}
@@ -13,6 +15,52 @@ var (
 	ErrNotFound        = errors.New("Couldn't find that")
 	ErrTooManyFound    = errors.New("Found too many of that")
 )
+
+type SortDirection string
+
+var (
+	SortDesc = SortDirection("DESC")
+	SortAsc  = SortDirection("ASC")
+)
+
+type QueryOperator interface {
+	GetSort() string
+	GetLimit() int
+}
+
+type BaseOperator struct {
+	SortField string
+	SortDir   SortDirection
+	Limit     int
+}
+
+func (qo *BaseOperator) GetLimit() int {
+	if qo.Limit == 0 {
+		return 50
+	}
+	return qo.Limit
+}
+
+func (qo *BaseOperator) GetSort() string {
+	if qo.SortField == "" {
+		return ""
+	}
+
+	direction := qo.SortDir
+	if direction == "" {
+		direction = SortAsc
+	}
+
+	return fmt.Sprintf("%s %s", qo.SortField, direction)
+}
+
+func StatusesPQStringArray(things []DonationStatus) pq.StringArray {
+	strs := make([]string, len(things))
+	for i, thing := range things {
+		strs[i] = fmt.Sprintf("%s", thing)
+	}
+	return pq.StringArray(strs)
+}
 
 func GetEnv(name, defaultValue string) string {
 	if v := os.Getenv(name); v != "" {
@@ -24,23 +72,4 @@ func GetEnv(name, defaultValue string) string {
 func AmountToString(amount float64) string {
 	str := fmt.Sprintf("%.2f", amount)
 	return str
-	/*
-		if len(str) == 1 {
-			str = "0" + str
-		}
-
-		first := str[:len(str)-2]
-		last := str[len(str)-2:]
-
-		if first == "" {
-			first = "0"
-		}
-
-		if len(last) == 1 {
-			last = last + "0"
-		} else if len(last) == 0 {
-			last = "00"
-
-		return first + "." + last
-		}*/
 }

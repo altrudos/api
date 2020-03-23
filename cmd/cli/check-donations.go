@@ -9,9 +9,8 @@ import (
 func checkDonations(name string, args []string) error {
 	db := MustGetDefaultDb()
 	jg := MustGetDefaultJustGiving()
-	fmt.Println("jg", jg)
 
-	donos, err := GetDonations(db)
+	donos, err := GetDonationsToCheck(db)
 	if err != nil {
 		return err
 	}
