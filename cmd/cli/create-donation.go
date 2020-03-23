@@ -4,6 +4,8 @@ import (
 	"errors"
 	"flag"
 
+	"github.com/monstercat/pgnull"
+
 	. "github.com/charityhonor/ch-api"
 )
 
@@ -55,13 +57,13 @@ func createDonation(name string, args []string) error {
 	donation := drive.GenerateDonation()
 	donation.CharityId = charityid
 	donation.Amount = amount
-	donation.Message = message
+	donation.Message = pgnull.NullString{message, message != ""}
 	donation.CurrencyCode = currency
 
 	spl("Mode:     %s", lyellow(jg.Mode))
 	spl("Charity:  %s", green(charity.Name))
 	spl("Drive:    %s", blue(drive.Name))
-	spl("Message:  %s", maybeEmpty(donation.Message, lyellow))
+	spl("Message:  %s", maybeEmpty(donation.Message.String, lyellow))
 	spl("Amount:   %s", lgreen(AmountToString(donation.Amount)))
 	spl("Currency: %s", lyellow(donation.CurrencyCode))
 

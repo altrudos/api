@@ -52,3 +52,7 @@ func main() {
 		}
 	}
 }
+
+func Pls(msg string, args ...interface{}) {
+	fmt.Println(fmt.Sprintf(msg, args...))
+}

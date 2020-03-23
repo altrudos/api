@@ -3,6 +3,8 @@ package charityhonor
 import (
 	"testing"
 
+	"github.com/charityhonor/ch-api/pkg/fixtures"
+
 	"github.com/charityhonor/ch-api/pkg/justgiving"
 )
 
@@ -13,7 +15,7 @@ func TestGetCharity(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	charity, err := GetCharityById(tx, 1)
+	charity, err := GetCharityById(tx, fixtures.CharityId1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -24,6 +26,38 @@ func TestGetCharity(t *testing.T) {
 
 	if charity.JustGivingCharityId != justgiving.Fixtures.CharityId {
 		t.Errorf("Expected JG Charity ID %v but got %v", justgiving.Fixtures.CharityId, charity.JustGivingCharityId)
+	}
+
+	tx.Rollback()
+}
+
+func TestInsertCharity(t *testing.T) {
+	db := GetTestDb()
+	tx, err := db.Beginx()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	charity := &Charity{
+		JustGivingCharityId: 835260, // American Red Cross
+		Description:         "The American Red Cross prevents and alleviates human suffering in the face of emergencies by mobilizing the power of volunteers and the generosity of donors.",
+		Name:                "American Red Cross",
+	}
+	if err := charity.Insert(tx); err != nil {
+		t.Error(err)
+	}
+
+	if charity.Id == "" {
+		t.Error("ID should be filled in")
+	}
+
+	charity2 := &Charity{
+		JustGivingCharityId: 835260, // American Red Cross
+		Description:         "This is a duplicate",
+		Name:                "American Red Cross Again",
+	}
+	if err := charity2.Insert(tx); err != ErrDuplicateJGCharityId {
+
 	}
 
 	tx.Rollback()

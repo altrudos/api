@@ -24,20 +24,20 @@ var (
 )
 
 type Drive struct {
-	Id        int    `json:"id" db:"id"`
-	SourceUrl string `json:"source_url" db:"source_url"`
 	Amount    int
 	Created   time.Time
-	Uri       string
-	Name      string
+	Id        string `json:"id" db:"id"`
 	Source    Source
+	SourceUrl string `json:"source_url" db:"source_url"`
+	Name      string
+	Uri       string
 }
 
 func GetDriveByUri(uri string) (*Drive, error) {
 	return nil, errors.New("Not implemented")
 }
 
-func GetDriveById(tx sqlx.Queryer, id int) (*Drive, error) {
+func GetDriveById(tx sqlx.Queryer, id string) (*Drive, error) {
 	return &Drive{
 		Name: "Fake",
 	}, nil

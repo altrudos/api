@@ -48,11 +48,13 @@ type Params struct {
 	Url    string
 	Body   string
 	Debug  bool
+	Query  url.Values
 }
 
 type JustGiving struct {
 	Mode  Mode
 	AppId string
+	Debug bool
 }
 
 func GetStringInBetween(str string, start string, end string) (result string) {
@@ -107,11 +109,16 @@ func (jg *JustGiving) Request(params *Params, send interface{}, receive interfac
 
 	url += "justgiving.com/" + jg.AppId + "/" + params.Path
 
+	if len(params.Query) > 0 {
+		url += "?" + params.Query.Encode()
+	}
+
 	req, err := http.NewRequest(params.Method, url, nil)
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-type", "application/json")
 	client := &http.Client{Timeout: 10 * time.Second}
 	res, err := client.Do(req)
 	if err != nil {
@@ -126,7 +133,8 @@ func (jg *JustGiving) Request(params *Params, send interface{}, receive interfac
 	bodyString := string(bodyBytes)
 	params.Body = bodyString
 
-	if params.Debug {
+	if params.Debug || jg.Debug {
+		fmt.Println("URL", url)
 		fmt.Println("Body", bodyString)
 	}
 
@@ -160,7 +168,6 @@ func (jg *JustGiving) GetDonationByReference(reference string) (*Donation, error
 	params := &Params{
 		Path:   "v1/donation/ref/" + reference,
 		Method: http.MethodGet,
-		Debug:  true,
 	}
 
 	type Response struct {
@@ -193,7 +200,7 @@ func (jg *JustGiving) GetDonationById(id int) (*Donation, error) {
 	}
 
 	var dono Donation
-	err := jg.Request(params, nil, dono)
+	err := jg.Request(params, nil, &dono)
 	if err != nil {
 		return nil, err
 	}

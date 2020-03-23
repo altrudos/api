@@ -81,13 +81,13 @@ var codeCount = 1
 type DonationStatus string
 
 type Donation struct {
-	Id            int
+	Id            string
 	Created       time.Time
 	LastChecked   pq.NullTime `db:"last_checked"`
 	Status        DonationStatus
 	ReferenceCode string     `db:"reference_code"`
-	DriveId       int        `db:"drive_id"`
-	CharityId     int        `db:"charity_id"`
+	DriveId       string     `db:"drive_id"`
+	CharityId     string     `db:"charity_id"`
 	Amount        float64    `db:"amount"`
 	DonorName     NullString `db:"donor_name"`
 	Message       NullString `db:"message"`
@@ -116,8 +116,8 @@ func GetDonationByField(tx sqlx.Queryer, field string, val interface{}) (*Donati
 		return nil, err
 	}
 
-	if d.CharityId == 0 {
-		return nil, errors.New("charity has an ID of 0")
+	if d.CharityId == "" {
+		return nil, errors.New("charity has a blank ID")
 	}
 
 	charity, err := GetCharityById(tx, d.CharityId)
@@ -129,7 +129,7 @@ func GetDonationByField(tx sqlx.Queryer, field string, val interface{}) (*Donati
 	return &d, nil
 }
 
-func GetDonationById(tx sqlx.Queryer, id int) (*Donation, error) {
+func GetDonationById(tx sqlx.Queryer, id string) (*Donation, error) {
 	return GetDonationByField(tx, "id", id)
 }
 
@@ -172,13 +172,13 @@ func GetDonations(tx sqlx.Queryer, ops *DonationOperators) ([]*Donation, error) 
 	return donos, nil
 }
 
-func (d *Donation) GenerateReferenceCode(tx *sqlx.Tx) error {
+func (d *Donation) GenerateReferenceCode(ext sqlx.Ext) error {
 	exists := false
 	for d.ReferenceCode == "" || exists == true {
 		str := uuid.Must(uuid.NewV4()).String()
 		str = fmt.Sprintf("ch-%d", time.Now().UnixNano())
 		d.ReferenceCode = str
-		dupe, err := GetDonationByReferenceCode(tx, d.ReferenceCode)
+		dupe, err := GetDonationByReferenceCode(ext, d.ReferenceCode)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				return nil

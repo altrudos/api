@@ -51,6 +51,7 @@ func TestGetDonationById(t *testing.T) {
 
 func TestGetCharity(t *testing.T) {
 	jg := GetTestJG()
+	jg.Debug = true
 	id := Fixtures.CharityId //this is their demo ID in their docs
 	charity, err := jg.GetCharityById(id)
 	if err != nil {
@@ -67,4 +68,35 @@ func TestGetCharity(t *testing.T) {
 	if charity.Description != expDescription {
 		t.Errorf("Expected charity with description '%s' but got '%s'", expDescription, charity.Description)
 	}
+}
+
+func TestSearchCharities(t *testing.T) {
+	jg := GetTestJG()
+	jg.Mode = ModeProduction
+	jg.Debug = true
+	result, err := jg.SearchCharities("fjdkslfjdskalfjdskafjdsa")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if result.Count > 0 {
+		t.Errorf("Expected 0 charities found for gibberish search, found %d\n", result.Count)
+	}
+
+	result, err = jg.SearchCharities(`"American Red Cross"`)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if result.Count != 3 {
+		t.Errorf("Expected a count of 3 but found %d\n", result.Count)
+	}
+
+	charities := result.Results
+
+	first := charities[0]
+	if first.Name != "American Red Cross" {
+		t.Errorf("Expected first result to be 'American Red Cross' but found '%s'\n", first.Name)
+	}
+
 }

@@ -1,5 +1,9 @@
+BEGIN;
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 CREATE TABLE IF NOT EXISTS drives (
-  id SERIAL PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   uri TEXT NOT NULL UNIQUE,
   amount NUMERIC NOT NULL DEFAULT 0,
   source_url TEXT,
@@ -10,20 +14,20 @@ CREATE TABLE IF NOT EXISTS drives (
 );
 
 CREATE TABLE IF NOT EXISTS charities (
-  id SERIAL PRIMARY KEY,
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   name TEXT,
   logo_url TEXT,
   description TEXT,
   summary TEXT,
-  jg_charity_id BIGINT
+  jg_charity_id BIGINT UNIQUE
 );
 
 CREATE TYPE donation_status AS ENUM ('Accepted', 'Pending', 'Rejected');
 
 CREATE TABLE IF NOT EXISTS donations (
-  id SERIAL PRIMARY KEY,
-  drive_id BIGINT REFERENCES drives(id),
-  charity_id BIGINT REFERENCES charities(id),
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  drive_id UUID REFERENCES drives(id),
+  charity_id UUID REFERENCES charities(id),
   last_checked TIMESTAMPTZ,
   next_check TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   created TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -37,3 +41,4 @@ CREATE TABLE IF NOT EXISTS donations (
   status donation_status NOT NULL DEFAULT 'Pending',
   message_visible BOOLEAN NOT NULL DEFAULT FALSE
 );
+COMMIT;

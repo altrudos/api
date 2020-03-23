@@ -16,6 +16,8 @@ var (
 	ErrTooManyFound    = errors.New("Found too many of that")
 )
 
+const PqSuffixId = "RETURNING \"id\""
+
 type SortDirection string
 
 var (
