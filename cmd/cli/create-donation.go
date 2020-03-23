@@ -22,12 +22,12 @@ func createDonation(name string, args []string) error {
 	var amount float64
 	var currency string
 	var message string
-	var charityid int
+	var charityid string
 	var sourceUrl string
 
 	set := flag.NewFlagSet("", flag.ExitOnError)
 	set.Float64Var(&amount, "amount", 0.00, "Donation amount")
-	set.IntVar(&charityid, "charityid", 0, "The charity ID locally")
+	set.StringVar(&charityid, "charityid", "", "The charity ID in our db")
 	set.StringVar(&currency, "currency", "USD", "The currency code to use.")
 	set.StringVar(&sourceUrl, "url", "", "The URL of the content to honor.")
 	set.StringVar(&message, "message", "", "Message.")
@@ -36,7 +36,7 @@ func createDonation(name string, args []string) error {
 		return err
 	}
 
-	if charityid == 0 {
+	if charityid == "" {
 		return errors.New("--charityid is required. It is the postgres ID in our database.")
 	}
 

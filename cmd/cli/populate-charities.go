@@ -4,6 +4,8 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/charityhonor/ch-api/pkg/justgiving"
 
@@ -21,21 +23,21 @@ func populateCharities(name string, args []string) error {
 	db := MustGetDefaultDb()
 	jg := MustGetDefaultJustGiving()
 	var search string
-	var charityId int
+	var charityIds string
 
 	set := flag.NewFlagSet("", flag.ExitOnError)
 	set.StringVar(&search, "message", "", "Message.")
-	set.IntVar(&charityId, "charityid", 0, "ID on JustGiving of the charity to add.")
+	set.StringVar(&charityIds, "charityids", "", "ID on JustGiving of the charity to add.")
 
 	if err := set.Parse(args); err != nil {
 		return err
 	}
 
-	if search == "" && charityId == 0 {
+	if search == "" && charityIds == "" {
 		return errors.New("Either --search or --charityid is required")
 	}
 
-	if search != "" && charityId != 0 {
+	if search != "" && charityIds != "" {
 		return errors.New("Either --search or --charityid is required")
 	}
 
@@ -54,19 +56,30 @@ func populateCharities(name string, args []string) error {
 
 		charities = result.Results
 	} else {
-		Pls("Adding charity with JustGiving ID %d", charityId)
-		charity, err := jg.GetCharityById(charityId)
-		if err != nil {
-			return err
+		Pls("Adding charities with JustGiving IDs %s", charityIds)
+		jgids := strings.Split(charityIds, ",")
+		for _, jgid := range jgids {
+			i, err := strconv.Atoi(jgid)
+			if err != nil {
+				return err
+			}
+			charity, err := jg.GetCharityById(i)
+			if err != nil {
+				return err
+			}
+			charities = append(charities, charity)
 		}
-
-		charities = append(charities, charity)
 	}
 
 	Pls("Attempting to add %d charities to db", len(charities))
 	for _, v := range charities {
+		fmt.Println("JG", v)
 		charity := ConvertJGCharity(v)
-		fmt.Println("TODO: do some charity stuff", charity.Name)
+		fmt.Println("converted", charity)
+		if err := charity.Insert(tx); err != nil {
+			tx.Rollback()
+			return err
+		}
 	}
 
 	return tx.Commit()

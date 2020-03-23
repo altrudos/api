@@ -4,7 +4,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE IF NOT EXISTS drives (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  uri TEXT NOT NULL UNIQUE,
+  uri TEXT NOT NULL,
   amount NUMERIC NOT NULL DEFAULT 0,
   source_url TEXT,
   reddit_comment_id BIGINT,
@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS drives (
   reddit_subreddit TEXT,
   reddit_markdown TEXT
 );
+CREATE UNIQUE INDEX drives_uri ON drives (uri);
 
 CREATE TABLE IF NOT EXISTS charities (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

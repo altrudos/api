@@ -38,8 +38,9 @@ func main() {
 		args = os.Args[1:]
 	}
 	err := cmd.Exec(args, cmd.DefaultHelper, cmd.M{
-		"create-donation": createDonation,
-		"check-donations": checkDonations,
+		"create-donation":    createDonation,
+		"check-donations":    checkDonations,
+		"populate-charities": populateCharities,
 	})
 	if err != nil {
 		switch v := err.(type) {
