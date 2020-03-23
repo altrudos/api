@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/charityhonor/ch-api/pkg/fixtures"
+
 	"github.com/charityhonor/ch-api/pkg/justgiving"
 	"github.com/jmoiron/sqlx"
 	. "github.com/monstercat/pgnull"
@@ -36,7 +38,7 @@ func TestDonationCRUD(t *testing.T) {
 
 	donation := Donation{
 		DriveId:      drive.Id,
-		CharityId:    1,
+		CharityId:    fixtures.CharityId1,
 		Amount:       float64(12.34),
 		CurrencyCode: "USD",
 		DonorName:    NullString{"Vindexus", true},
@@ -101,7 +103,7 @@ func TestDonationCRUD(t *testing.T) {
 		t.Error("Get donation link should fail if missing currency code")
 	}
 
-	donError.CharityId = 1
+	donError.CharityId = fixtures.CharityId1
 	_, err = donError.GetDonationLink(jg)
 	if err == nil {
 		t.Error("Get donation link should fail if missing charity")
@@ -178,7 +180,7 @@ func TestDonationChecking(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	dono, err := GetDonationById(tx, 1)
+	dono, err := GetDonationById(tx, fixtures.DonationId1)
 	if err != nil {
 		t.Fatal(err)
 	}

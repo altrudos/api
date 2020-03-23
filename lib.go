@@ -75,3 +75,13 @@ func AmountToString(amount float64) string {
 	str := fmt.Sprintf("%.2f", amount)
 	return str
 }
+
+func ErrIsPqConstraint(err error, constraint string) bool {
+	if err, ok := err.(*pq.Error); ok {
+		if err.Constraint == constraint {
+			return true
+		}
+	}
+
+	return false
+}

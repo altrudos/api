@@ -44,11 +44,11 @@ func TestInsertCharity(t *testing.T) {
 		Name:                "American Red Cross",
 	}
 	if err := charity.Insert(tx); err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	if charity.Id == "" {
-		t.Error("ID should be filled in")
+		t.Fatal("ID should be filled in")
 	}
 
 	charity2 := &Charity{
@@ -57,7 +57,7 @@ func TestInsertCharity(t *testing.T) {
 		Name:                "American Red Cross Again",
 	}
 	if err := charity2.Insert(tx); err != ErrDuplicateJGCharityId {
-
+		t.Error("Expected duplicate JGChairtyId error")
 	}
 
 	tx.Rollback()

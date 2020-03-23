@@ -29,8 +29,8 @@ func TestDriveInsert(t *testing.T) {
 		fmt.Println("URI:", d.Uri)
 	}
 
-	if d.Id < 1 {
-		t.Error("Drive id should probably be 1")
+	if d.Id == "" {
+		t.Error("Drive id should probably be set")
 	}
 
 	tx.Rollback()

@@ -26,7 +26,7 @@ var (
 type Drive struct {
 	Amount    int
 	Created   time.Time
-	Id        string `json:"id" db:"id"`
+	Id        string `json:"id" setmap:"omitinsert"`
 	Source    Source
 	SourceUrl string `json:"source_url" db:"source_url"`
 	Name      string
@@ -96,7 +96,7 @@ func GetOrCreateDriveBySourceUrl(db *sqlx.DB, url string) (*Drive, error) {
 }
 
 func (d *Drive) Insert(tx *sqlx.Tx) error {
-	if d.Id > 0 {
+	if d.Id != "" {
 		return ErrAlreadyInserted
 	}
 

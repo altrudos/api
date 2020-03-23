@@ -7,8 +7,6 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/monstercat/golib/db"
-
 	. "github.com/monstercat/pgnull"
 
 	"github.com/charityhonor/ch-api/pkg/justgiving"
@@ -81,18 +79,18 @@ var codeCount = 1
 type DonationStatus string
 
 type Donation struct {
-	Id            string
-	Created       time.Time
-	LastChecked   pq.NullTime `db:"last_checked"`
-	Status        DonationStatus
-	ReferenceCode string     `db:"reference_code"`
-	DriveId       string     `db:"drive_id"`
-	CharityId     string     `db:"charity_id"`
-	Amount        float64    `db:"amount"`
-	DonorName     NullString `db:"donor_name"`
-	Message       NullString `db:"message"`
-	CurrencyCode  string     `db:"currency_code"`
+	Amount        float64 `db:"amount"`
 	Charity       *Charity
+	CharityId     string `db:"charity_id"`
+	Created       time.Time
+	CurrencyCode  string      `db:"currency_code"`
+	DonorName     NullString  `db:"donor_name"`
+	DriveId       string      `db:"drive_id"`
+	Id            string      `setmap:"omitinsert"`
+	LastChecked   pq.NullTime `db:"last_checked"`
+	Message       NullString  `db:"message"`
+	Status        DonationStatus
+	ReferenceCode string `db:"reference_code"`
 }
 
 // Used in queries
@@ -157,8 +155,6 @@ func GetDonations(tx sqlx.Queryer, ops *DonationOperators) ([]*Donation, error) 
 	if len(ops.Statuses) > 0 {
 		query = query.Where("status = ANY (?)", StatusesPQStringArray(ops.Statuses))
 	}
-
-	dbUtil.DebugQuery(query)
 
 	sql, args, err := query.ToSql()
 	if err != nil {

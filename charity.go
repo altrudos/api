@@ -2,9 +2,6 @@ package charityhonor
 
 import (
 	"errors"
-	"fmt"
-
-	"github.com/lib/pq"
 
 	"github.com/monstercat/golib/db"
 
@@ -14,10 +11,10 @@ import (
 )
 
 type Charity struct {
-	Id                  string `db:"id"`
-	Name                string `db:"name"`
-	Description         string `db:"description"`
+	Description         string
+	Id                  string `setmap:"omitinsert"`
 	JustGivingCharityId int    `db:"jg_charity_id"`
+	Name                string
 }
 
 var (
@@ -47,20 +44,22 @@ func ConvertCharityError(err error) error {
 	if err == nil {
 		return nil
 	}
-	if err, ok := err.(*pq.Error); ok {
-		// Here err is of type *pq.Error, you may inspect all its fields, e.g.:
-		name := err.Code.Name()
-		fmt.Println("name", name)
+
+	if ErrIsPqConstraint(err, "charities_jg_charity_id_unique") {
 		return ErrDuplicateJGCharityId
+
 	}
+
+	return err
 }
 
 func (c *Charity) Insert(ext sqlx.Ext) error {
-	_, err := CharityInsertBuilder.
-		Values(dbUtil.SetMap(c, true)).
+	err := CharityInsertBuilder.
+		SetMap(dbUtil.SetMap(c, true)).
 		Suffix(PqSuffixId).
 		RunWith(ext).
-		Exec()
+		QueryRow().
+		Scan(&c.Id)
 
 	return ConvertCharityError(err)
 }

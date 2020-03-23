@@ -19,8 +19,9 @@ CREATE TABLE IF NOT EXISTS charities (
   logo_url TEXT,
   description TEXT,
   summary TEXT,
-  jg_charity_id BIGINT UNIQUE
+  jg_charity_id BIGINT
 );
+CREATE UNIQUE INDEX charities_jg_charity_id_unique ON charities (jg_charity_id);
 
 CREATE TYPE donation_status AS ENUM ('Accepted', 'Pending', 'Rejected');
 
