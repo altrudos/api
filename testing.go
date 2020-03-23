@@ -12,7 +12,7 @@ func GetTestDb() *sqlx.DB {
 	if db != nil {
 		return db
 	}
-	url := GetEnv("TESTPGURL", "postgresql://charityhonor@localhost/charityhonor-test?sslmode=disable")
+	url := GetEnv("TESTPGURL", "postgresql://charityhonor@localhost/charityhonortest?sslmode=disable")
 	var err error
 	db, err = GetPostgresConnection(url)
 	if err != nil {

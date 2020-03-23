@@ -32,7 +32,7 @@ func getDriveForTesting() (*Drive, *sqlx.Tx, *sqlx.DB) {
 }
 
 func TestDonationCRUD(t *testing.T) {
-	drive, tx, db := getDriveForTesting()
+	drive, tx, _ := getDriveForTesting()
 
 	donation := Donation{
 		DriveId:      drive.Id,
@@ -55,9 +55,6 @@ func TestDonationCRUD(t *testing.T) {
 		t.Error("Drive Id doesn't match")
 	}
 
-	tx.Commit()
-
-	tx, err := db.Beginx()
 	dono2, err := GetDonationByReferenceCode(tx, donation.ReferenceCode)
 	if err != nil {
 		t.Error(err)
@@ -119,9 +116,6 @@ func TestDonationCRUD(t *testing.T) {
 		t.Errorf("Url should contain %v, got %s", justgiving.Fixtures.CharityId, url)
 	}
 
-	tx.Commit()
-
-	tx, _ = db.Beginx()
 	newAmount := float64(1337)
 	newName := "Colin 9430843290"
 	dono2.Amount = newAmount
@@ -130,9 +124,8 @@ func TestDonationCRUD(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	tx.Commit()
 
-	dono3, err := GetDonationByReferenceCode(db, dono2.ReferenceCode)
+	dono3, err := GetDonationByReferenceCode(tx, dono2.ReferenceCode)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -145,13 +138,17 @@ func TestDonationCRUD(t *testing.T) {
 	}
 
 	// Get multiple donations
-	donos, err := GetDonations(db, &DonationOperators{})
+	donos, err := GetDonations(tx, &DonationOperators{})
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	if len(donos) == 0 {
 		t.Error("Found 0 donations")
+	}
+
+	if err := tx.Rollback(); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -198,7 +195,7 @@ func TestDonationChecking(t *testing.T) {
 	}
 
 	if dono.Status != DonationAccepted {
-		t.Errorf("Expectd donation approved but was %v", dono.Status)
+		t.Errorf("Expectd donation %s but was %v", DonationAccepted, dono.Status)
 	}
 
 	if dono.GetLastChecked().IsZero() {
@@ -223,5 +220,9 @@ func TestDonationChecking(t *testing.T) {
 
 	if dono.Status != DonationRejected {
 		t.Error("Donation should be rejected if we can't find it in JG by reference code")
+	}
+
+	if err := tx.Rollback(); err != nil {
+		t.Error(err)
 	}
 }

@@ -9,6 +9,9 @@ import (
 func TestGetCharity(t *testing.T) {
 	db := GetTestDb()
 	tx, err := db.Beginx()
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	charity, err := GetCharityById(tx, 1)
 	if err != nil {

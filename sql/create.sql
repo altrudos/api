@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS charities (
   jg_charity_id BIGINT
 );
 
+CREATE TYPE donation_status AS ENUM ('Accepted', 'Pending', 'Rejected');
+
 CREATE TABLE IF NOT EXISTS donations (
   id SERIAL PRIMARY KEY,
   drive_id BIGINT REFERENCES drives(id),
@@ -32,6 +34,6 @@ CREATE TABLE IF NOT EXISTS donations (
   local_currency_code TEXT,
   donor_name TEXT,
   message TEXT,
-  status TEXT NOT NULL DEFAULT 'pending',
+  status donation_status NOT NULL DEFAULT 'Pending',
   message_visible BOOLEAN NOT NULL DEFAULT FALSE
 );

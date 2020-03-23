@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/monstercat/golib/db"
+
 	. "github.com/monstercat/pgnull"
 
 	"github.com/charityhonor/ch-api/pkg/justgiving"
@@ -24,6 +26,7 @@ var (
 )
 
 var (
+	// These statuses are uppercased on JustGiving s well
 	DonationAccepted DonationStatus = "Accepted"
 	DonationPending  DonationStatus = "Pending"
 	DonationRejected DonationStatus = "Rejected"
@@ -155,12 +158,12 @@ func GetDonations(tx sqlx.Queryer, ops *DonationOperators) ([]*Donation, error) 
 		query = query.Where("status = ANY (?)", StatusesPQStringArray(ops.Statuses))
 	}
 
+	dbUtil.DebugQuery(query)
+
 	sql, args, err := query.ToSql()
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("sql", sql)
-	fmt.Println("args", args)
 	donos := make([]*Donation, 0)
 	err = sqlx.Select(tx, &donos, sql, args...)
 	if err != nil {
@@ -221,6 +224,10 @@ func (d *Donation) Create(tx *sqlx.Tx) error {
 
 	if err != nil {
 		return err
+	}
+
+	if d.Status == DonationStatus("") {
+		d.Status = DonationPending
 	}
 
 	return d.Insert(tx)
