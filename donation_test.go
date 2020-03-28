@@ -39,7 +39,7 @@ func TestDonationCRUD(t *testing.T) {
 	donation := Donation{
 		DriveId:           drive.Id,
 		CharityId:         fixtures.CharityId1,
-		DonorAmount:       12.34,
+		DonorAmount:       1234,
 		DonorCurrencyCode: "USD",
 		DonorName:         NewNullString("Vindexus"),
 		Message:           NewNullString(`I'm just trying this <strong>OUT!</strong>`),
@@ -118,7 +118,7 @@ func TestDonationCRUD(t *testing.T) {
 		t.Errorf("Url should contain %v, got %s", justgiving.Fixtures.CharityId, url)
 	}
 
-	newAmount := float64(1337)
+	newAmount := 133700
 	newName := "Colin 9430843290"
 	dono2.DonorAmount = newAmount
 	dono2.DonorName = NullString{newName, true}

@@ -47,7 +47,7 @@ type Drive struct {
 	FinalAmountTotal      int      `db:"final_amount_total" setmap:"-"`
 	FinalAmountMax        int      `db:"final_amount_max" setmap:"-"`
 	DonorAmountTotal      int      `db:"donor_amount_total" setmap:"-"`
-	DonorAmountMax        int      `db:"donor_amount_max"`
+	DonorAmountMax        int      `db:"donor_amount_max" setmap:"-"`
 }
 
 func GetDrives(db sqlx.Queryer, where interface{}) ([]*Drive, error) {
@@ -72,14 +72,14 @@ func GetDrive(db sqlx.Queryer, where interface{}) (*Drive, error) {
 
 func GetDriveByField(q sqlx.Queryer, field, value string) (*Drive, error) {
 	query, args, err := DriveSelectBuilder.
-		From(TableDrives).
+		From(ViewDrives).
 		Where(field+"=?", value).
 		ToSql()
 	if err != nil {
 		return nil, err
 	}
 	ds := make([]*Drive, 0)
-	err = sqlx.Select(db, &ds, query, args...)
+	err = sqlx.Select(q, &ds, query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func GetDriveBySourceUrl(q sqlx.Queryer, url string) (*Drive, error) {
 }
 
 func GetOrCreateDriveBySourceUrl(ext sqlx.Ext, url string) (*Drive, error) {
-	drive, err := GetDriveBySourceUrl(db, url)
+	drive, err := GetDriveBySourceUrl(ext, url)
 	if err == nil {
 		return drive, nil
 	}

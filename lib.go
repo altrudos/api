@@ -71,9 +71,15 @@ func GetEnv(name, defaultValue string) string {
 	return defaultValue
 }
 
-func AmountToString(amount float64) string {
-	str := fmt.Sprintf("%.2f", amount)
-	return str
+func AmountToString(amount int) string {
+	str := fmt.Sprintf("%d", amount)
+	if len(str) == 2 {
+		return "0." + str
+	}
+	if len(str) == 1 {
+		return "0.0" + str
+	}
+	return str[:len(str)-2] + "." + str[len(str)-2:]
 }
 
 func ErrIsPqConstraint(err error, constraint string) bool {

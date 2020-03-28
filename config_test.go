@@ -4,7 +4,7 @@ import "testing"
 
 func TestConfig(t *testing.T) {
 
-	c, err := ParseConfig("./config.toml")
+	c, err := ParseConfig("./config.example.toml")
 	if err != nil {
 		t.Fatal(err)
 	}
