@@ -39,10 +39,10 @@ func TestDonationCRUD(t *testing.T) {
 	donation := Donation{
 		DriveId:           drive.Id,
 		CharityId:         fixtures.CharityId1,
-		DonorAmount:       float64(12.34),
+		DonorAmount:       12.34,
 		DonorCurrencyCode: "USD",
-		DonorName:         NullString{"Vindexus", true},
-		Message:           NullString{`I'm just trying this <strong>OUT!</strong>`, true},
+		DonorName:         NewNullString("Vindexus"),
+		Message:           NewNullString(`I'm just trying this <strong>OUT!</strong>`),
 	}
 
 	if err := donation.Create(tx); err != nil {
