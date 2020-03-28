@@ -2,6 +2,7 @@ package charityhonor
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/monstercat/golib/db"
 
@@ -67,6 +68,19 @@ func (c *Charity) Insert(ext sqlx.Ext) error {
 func GetCharityById(tx sqlx.Queryer, id string) (*Charity, error) {
 	query, args, err := CharitySelectBuilder.
 		Where("id=?", id).
+		ToSql()
+	if err != nil {
+		return nil, err
+	}
+
+	var d Charity
+	err = sqlx.Get(tx, &d, query, args...)
+	return &d, err
+}
+
+func GetCharityByName(tx sqlx.Queryer, name string) (*Charity, error) {
+	query, args, err := CharitySelectBuilder.
+		Where("LOWER(name)=?", strings.ToLower(name)).
 		ToSql()
 	if err != nil {
 		return nil, err

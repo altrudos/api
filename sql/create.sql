@@ -28,19 +28,18 @@ CREATE TYPE donation_status AS ENUM ('Accepted', 'Pending', 'Rejected');
 
 CREATE TABLE IF NOT EXISTS donations (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  drive_id UUID REFERENCES drives(id),
   charity_id UUID REFERENCES charities(id),
+  created TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  drive_id UUID REFERENCES drives(id),
+  donor_amount NUMERIC,
+  donor_currency_code TEXT,
+  donor_name TEXT,
+  final_amount NUMERIC,
   last_checked TIMESTAMPTZ,
   next_check TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  created TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  reference_code TEXT NOT NULL UNIQUE,
-  currency_code TEXT,
-  amount NUMERIC,
-  local_amount NUMERIC,
-  local_currency_code TEXT,
-  donor_name TEXT,
   message TEXT,
+  message_visible BOOLEAN NOT NULL DEFAULT FALSE,
   status donation_status NOT NULL DEFAULT 'Pending',
-  message_visible BOOLEAN NOT NULL DEFAULT FALSE
+  reference_code TEXT NOT NULL UNIQUE
 );
 COMMIT;

@@ -26,7 +26,7 @@ func populateCharities(name string, args []string) error {
 	var charityIds string
 
 	set := flag.NewFlagSet("", flag.ExitOnError)
-	set.StringVar(&search, "message", "", "Message.")
+	set.StringVar(&search, "search", "", "Search for charities with this name.")
 	set.StringVar(&charityIds, "charityids", "", "ID on JustGiving of the charity to add.")
 
 	if err := set.Parse(args); err != nil {

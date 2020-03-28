@@ -31,7 +31,7 @@ type Donation struct {
 	LocalCurrencyCode   string    `json:"donorLocalCurrencyCode"`
 	Date                time.Time //This needs to be calculated by us cause they give us a weird date format
 	DateString          string    `json:"donationDate"`
-	ThirdPartyReference string    `json:'thirdPartyReference"`
+	ThirdPartyReference string    `json:"thirdPartyReference"`
 	Status              string    `json:"status"`
 }
 
@@ -118,7 +118,7 @@ func (jg *JustGiving) Request(params *Params, send interface{}, receive interfac
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Content-type", "application/json")
+	req.Header.Set("Accept", "application/json")
 	client := &http.Client{Timeout: 10 * time.Second}
 	res, err := client.Do(req)
 	if err != nil {
@@ -177,6 +177,7 @@ func (jg *JustGiving) GetDonationByReference(reference string) (*Donation, error
 	}
 
 	var resp Response
+	params.Debug = true
 	err := jg.Request(params, nil, &resp)
 	if err != nil {
 		return nil, err

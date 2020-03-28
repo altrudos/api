@@ -7,11 +7,12 @@ import (
 	"net/url"
 	"time"
 
-	. "github.com/monstercat/pgnull"
+	dbUtil "github.com/monstercat/golib/db"
+
+	"github.com/monstercat/pgnull"
 
 	"github.com/charityhonor/ch-api/pkg/justgiving"
 	"github.com/jmoiron/sqlx"
-	"github.com/lib/pq"
 	"github.com/satori/go.uuid"
 )
 
@@ -43,17 +44,18 @@ var (
 
 var (
 	DONATION_COLUMNS = map[string]string{
-		"Id":            "id",
-		"LastChecked":   "last_checked",
-		"Status":        "status",
-		"ReferenceCode": "reference_code",
-		"DriveId":       "drive_id",
-		"Created":       "created",
-		"DonorName":     "donor_name",
-		"CharityId":     "charity_id",
-		"Amount":        "amount",
-		"CurrentyCode":  "currency_code",
-		"Message":       "message",
+		"Id":                "id",
+		"CharityId":         "charity_id",
+		"Created":           "created",
+		"DonorAmount":       "donor_amount",
+		"DonorCurrentyCode": "donor_currency_code",
+		"DonorName":         "donor_name",
+		"DriveId":           "drive_id",
+		"FinalAmount":       "final_amount",
+		"LastChecked":       "last_checked",
+		"Message":           "message",
+		"ReferenceCode":     "reference_code",
+		"Status":            "status",
 	}
 )
 
@@ -79,18 +81,19 @@ var codeCount = 1
 type DonationStatus string
 
 type Donation struct {
-	Amount        float64 `db:"amount"`
-	Charity       *Charity
-	CharityId     string `db:"charity_id"`
-	Created       time.Time
-	CurrencyCode  string      `db:"currency_code"`
-	DonorName     NullString  `db:"donor_name"`
-	DriveId       string      `db:"drive_id"`
-	Id            string      `setmap:"omitinsert"`
-	LastChecked   pq.NullTime `db:"last_checked"`
-	Message       NullString  `db:"message"`
-	Status        DonationStatus
-	ReferenceCode string `db:"reference_code"`
+	Charity           *Charity `db:"-"`
+	CharityId         string   `db:"charity_id"`
+	Created           time.Time
+	DonorAmount       float64           `db:"donor_amount"`        // What the donor typed in
+	DonorCurrencyCode string            `db:"donor_currency_code"` // What the donor selected
+	DonorName         pgnull.NullString `db:"donor_name"`
+	DriveId           string            `db:"drive_id"`
+	FinalAmount       float64           `db:"final_amount"`
+	Id                string            `setmap:"omitinsert"`
+	LastChecked       pgnull.NullTime   `db:"last_checked"`
+	Message           pgnull.NullString `db:"message"`
+	Status            DonationStatus
+	ReferenceCode     string `db:"reference_code"`
 }
 
 // Used in queries
@@ -187,21 +190,9 @@ func (d *Donation) GenerateReferenceCode(ext sqlx.Ext) error {
 	return nil
 }
 
-func (d *Donation) getSetMap() M {
-	return M{
-		"charity_id":     d.CharityId,
-		"drive_id":       d.DriveId,
-		"status":         d.Status,
-		"donor_name":     d.DonorName,
-		"message":        d.Message,
-		"amount":         d.Amount,
-		"reference_code": d.ReferenceCode,
-		"currency_code":  d.CurrencyCode,
-	}
-}
-
 //Create does magic before insert into db
 func (d *Donation) Create(tx *sqlx.Tx) error {
+	fmt.Println("charityId", d.CharityId)
 	charity, err := GetCharityById(tx, d.CharityId)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -231,21 +222,21 @@ func (d *Donation) Create(tx *sqlx.Tx) error {
 
 //Raw insert into db
 func (d *Donation) Insert(tx *sqlx.Tx) error {
-	setMap := d.getSetMap()
+	fmt.Println("setmap")
 	return DonationInsertBuilder.
-		SetMap(setMap).
+		SetMap(dbUtil.SetMap(d, true)).
 		Suffix(RETURNING_ID).
 		RunWith(tx).
 		QueryRow().
 		Scan(&d.Id)
 }
 
-func (d *Donation) Save(tx *sqlx.Tx) error {
-	setMap := d.getSetMap()
+func (d *Donation) Save(ext sqlx.Ext) error {
+	setMap := dbUtil.SetMap(d, false)
 	_, err := DonationUpdateBuilder.
 		SetMap(setMap).
 		Where("id=?", d.Id).
-		RunWith(tx).
+		RunWith(ext).
 		Exec()
 	return err
 }
@@ -263,11 +254,15 @@ func (d *Donation) GetDonationLink(jg *justgiving.JustGiving) (string, error) {
 		urls.Set("message", d.Message.String)
 	}
 
-	if d.CurrencyCode == "" {
+	if d.Message.Valid && d.Message.String != "" {
+		urls.Set("message", d.Message.String)
+	}
+
+	if d.DonorCurrencyCode == "" {
 		return "", ErrNoCurrencyCode
 	}
 
-	if d.Amount == 0 {
+	if d.DonorAmount == 0 {
 		return "", ErrNoAmount
 	}
 
@@ -275,8 +270,8 @@ func (d *Donation) GetDonationLink(jg *justgiving.JustGiving) (string, error) {
 		return "", ErrNoCharity
 	}
 
-	urls.Set("currency", d.CurrencyCode)
-	urls.Set("amount", AmountToString(d.Amount))
+	urls.Set("currency", d.DonorCurrencyCode)
+	urls.Set("amount", AmountToString(d.DonorAmount))
 	urls.Set("reference", d.ReferenceCode)
 
 	return jg.GetDonationLink(d.Charity.JustGivingCharityId, urls), nil
@@ -313,7 +308,7 @@ func (d *Donation) CheckStatus(tx *sqlx.Tx, jg *justgiving.JustGiving) error {
 	}
 
 	d.Status = status
-	d.LastChecked = pq.NullTime{time.Now(), true}
+	d.LastChecked = pgnull.NullTime{time.Now(), true}
 	err = d.Save(tx)
 	return err
 }

@@ -5,6 +5,7 @@ import (
 	"flag"
 
 	"github.com/monstercat/pgnull"
+	errs "github.com/pkg/errors"
 
 	. "github.com/charityhonor/ch-api"
 )
@@ -23,49 +24,68 @@ func createDonation(name string, args []string) error {
 	var currency string
 	var message string
 	var charityid string
+	var charityname string
+	var donorname string
 	var sourceUrl string
 
 	set := flag.NewFlagSet("", flag.ExitOnError)
 	set.Float64Var(&amount, "amount", 0.00, "Donation amount")
+	set.StringVar(&charityname, "charityname", "", "Exact charity name in our db")
 	set.StringVar(&charityid, "charityid", "", "The charity ID in our db")
 	set.StringVar(&currency, "currency", "USD", "The currency code to use.")
 	set.StringVar(&sourceUrl, "url", "", "The URL of the content to honor.")
 	set.StringVar(&message, "message", "", "Message.")
+	set.StringVar(&donorname, "donorname", "", "Donor's name.")
 
 	if err := set.Parse(args); err != nil {
 		return err
 	}
 
-	if charityid == "" {
-		return errors.New("--charityid is required. It is the postgres ID in our database.")
+	if charityid == "" && charityname == "" {
+		return errors.New("Either --charityid or --charityname is required. It is the value in our database.")
 	}
 
 	if sourceUrl == "" {
 		return errors.New("--url is required. It is the source URL to honor.")
 	}
 
-	charity, err := GetCharityById(db, charityid)
-	if err != nil {
-		return err
+	if amount <= 0 {
+		return errors.New("--amount must be positive")
+	}
+
+	var charity *Charity
+	var err error
+	if charityid != "" {
+		charity, err = GetCharityById(db, charityid)
+		if err != nil {
+			return errs.Wrap(err, "could not find charity by id")
+		}
+	} else {
+		charity, err = GetCharityByName(db, charityname)
+		if err != nil {
+			return errs.Wrap(err, "could not find charity by name "+charityname)
+		}
 	}
 
 	drive, err := GetOrCreateDriveBySourceUrl(db, sourceUrl)
 	if err != nil {
-		return err
+		return errs.Wrap(err, "could not get or create drive from source")
 	}
 
 	donation := drive.GenerateDonation()
-	donation.CharityId = charityid
-	donation.Amount = amount
+	donation.CharityId = charity.Id
+	donation.DriveId = drive.Id
 	donation.Message = pgnull.NullString{message, message != ""}
-	donation.CurrencyCode = currency
+	donation.DonorAmount = amount
+	donation.DonorCurrencyCode = currency
+	donation.DonorName = pgnull.NullString{donorname, donorname != ""}
 
-	spl("Mode:     %s", lyellow(jg.Mode))
-	spl("Charity:  %s", green(charity.Name))
-	spl("Drive:    %s", blue(drive.Name))
-	spl("Message:  %s", maybeEmpty(donation.Message.String, lyellow))
-	spl("Amount:   %s", lgreen(AmountToString(donation.Amount)))
-	spl("Currency: %s", lyellow(donation.CurrencyCode))
+	spl("Mode:           %s", lyellow(jg.Mode))
+	spl("Charity:        %s", green(charity.Name))
+	spl("Drive:          %s", blue(drive.Name))
+	spl("Message:        %s", maybeEmpty(donation.Message.String, lyellow))
+	spl("Donor Amount:   %s", lgreen(AmountToString(donation.DonorAmount)))
+	spl("Donor Currency: %s", lyellow(donation.DonorCurrencyCode))
 
 	tx, err := db.Beginx()
 	if err != nil {
@@ -73,6 +93,7 @@ func createDonation(name string, args []string) error {
 	}
 	err = donation.Create(tx)
 	if err != nil {
+		Pls("Error creating donation")
 		return err
 	}
 	spl("")
