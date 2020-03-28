@@ -6,10 +6,12 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	. "github.com/monstercat/pgnull"
 )
 
 var (
-	TABLE_DRIVES = "drives"
+	TableDrives = "drives"
+	ViewDrives  = "drives_view"
 )
 
 var DRIVE_COLUMNS map[string]string = map[string]string{
@@ -19,8 +21,8 @@ var DRIVE_COLUMNS map[string]string = map[string]string{
 }
 
 var (
-	DriveInsertBuilder = QueryBuilder.Insert(TABLE_DRIVES)
-	DriveSelectBuilder = QueryBuilder.Select(GetColumnsString(DRIVE_COLUMNS)).From(TABLE_DRIVES)
+	DriveInsertBuilder = QueryBuilder.Insert(TableDrives)
+	DriveSelectBuilder = QueryBuilder.Select(GetColumnsString(DRIVE_COLUMNS)).From(TableDrives)
 )
 
 type Drive struct {
@@ -31,6 +33,40 @@ type Drive struct {
 	SourceUrl string `json:"source_url" db:"source_url"`
 	Name      string
 	Uri       string
+
+	RedditCommentId NullInt    `db:"reddit_comment_id"`
+	RedditUsername  NullString `db:"reddit_username"`
+	RedditSubreddit NullString `db:"reddit_subreddit"`
+	RedditMarkdown  NullString `db:"reddit_markdown"`
+
+	// From View
+	MostRecentDonorAmount int      `db:"most_recent_donor_amount" setmap:"-"`
+	MostRecentFinalAmount int      `db:"most_recent_final_amount" setmap:"-"`
+	MostRecentTime        NullTime `db:"most_recent_time" setmap:"-"`
+	FinalAmountTotal      int      `db:"final_amount_total" setmap:"-"`
+	FinalAmountMax        int      `db:"final_amount_max" setmap:"-"`
+	DonorAmountTotal      int      `db:"donor_amount_total" setmap:"-"`
+	DonorAmountMax        int      `db:"donor_amount_max"`
+}
+
+func GetDrives(db sqlx.Queryer, where interface{}) ([]*Drive, error) {
+	var xs []*Drive
+	c := &Cond{
+		Where:    where,
+		OrderBys: []string{"created DESC"},
+	}
+	if err := SelectForStruct(db, &xs, ViewDrives, c); err != nil {
+		return nil, err
+	}
+	return xs, nil
+}
+
+func GetDrive(db sqlx.Queryer, where interface{}) (*Drive, error) {
+	var x Drive
+	if err := GetForStruct(db, &x, ViewDrives, where); err != nil {
+		return nil, err
+	}
+	return &x, nil
 }
 
 func GetDriveByUri(uri string) (*Drive, error) {
@@ -45,7 +81,7 @@ func GetDriveById(tx sqlx.Queryer, id string) (*Drive, error) {
 
 func GetDriveBySourceUrl(db *sqlx.DB, url string) (*Drive, error) {
 	query, args, err := DriveSelectBuilder.
-		From(TABLE_DRIVES).
+		From(TableDrives).
 		Where("source_url=?", url).
 		ToSql()
 	if err != nil {

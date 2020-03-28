@@ -84,11 +84,11 @@ type Donation struct {
 	Charity           *Charity `db:"-"`
 	CharityId         string   `db:"charity_id"`
 	Created           time.Time
-	DonorAmount       float64           `db:"donor_amount"`        // What the donor typed in
+	DonorAmount       int               `db:"donor_amount"`        // What the donor typed in
 	DonorCurrencyCode string            `db:"donor_currency_code"` // What the donor selected
 	DonorName         pgnull.NullString `db:"donor_name"`
 	DriveId           string            `db:"drive_id"`
-	FinalAmount       float64           `db:"final_amount"`
+	FinalAmount       int               `db:"final_amount"`
 	Id                string            `setmap:"omitinsert"`
 	LastChecked       pgnull.NullTime   `db:"last_checked"`
 	Message           pgnull.NullString `db:"message"`

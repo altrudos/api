@@ -19,12 +19,6 @@ import (
  */
 func createDonation(name string, args []string) error {
 	var confFile string
-	flag.StringVar(&confFile,"config", "./config.toml", "Configuration file")
-	flag.Parse()
-	services := MustGetConfigServices(confFile)
-	db := services.DB
-	jg := services.JG
-
 	var amount float64
 	var currency string
 	var message string
@@ -33,7 +27,8 @@ func createDonation(name string, args []string) error {
 	var donorname string
 	var sourceUrl string
 
-	set := flag.NewFlagSet("", flag.ExitOnError)
+	set := flag.NewFlagSet(name, flag.ExitOnError)
+	set.StringVar(&confFile,"config", "./config.toml", "Configuration file")
 	set.Float64Var(&amount, "amount", 0.00, "Donation amount")
 	set.StringVar(&charityname, "charityname", "", "Exact charity name in our db")
 	set.StringVar(&charityid, "charityid", "", "The charity ID in our db")
@@ -41,10 +36,13 @@ func createDonation(name string, args []string) error {
 	set.StringVar(&sourceUrl, "url", "", "The URL of the content to honor.")
 	set.StringVar(&message, "message", "", "Message.")
 	set.StringVar(&donorname, "donorname", "", "Donor's name.")
-
 	if err := set.Parse(args); err != nil {
 		return err
 	}
+
+	services := MustGetConfigServices(confFile)
+	db := services.DB
+	jg := services.JG
 
 	if charityid == "" && charityname == "" {
 		return errors.New("Either --charityid or --charityname is required. It is the value in our database.")

@@ -13,8 +13,11 @@ import (
 
 func checkDonations(name string, args []string) error {
 	var confFile string
-	flag.StringVar(&confFile,"config", "./config.toml", "Configuration file")
-	flag.Parse()
+	set := flag.NewFlagSet(name, flag.ExitOnError)
+	set.StringVar(&confFile,"config", "./config.toml", "Configuration file")
+	if err := set.Parse(args); err != nil {
+		return err
+	}
 	services := MustGetConfigServices(confFile)
 	db := services.DB
 	jg := services.JG
