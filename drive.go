@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Masterminds/squirrel"
+
 	"github.com/monstercat/golib/db"
 
 	"github.com/jmoiron/sqlx"
@@ -24,7 +26,7 @@ var DRIVE_COLUMNS map[string]string = map[string]string{
 
 var (
 	DriveInsertBuilder = QueryBuilder.Insert(TableDrives)
-	DriveSelectBuilder = QueryBuilder.Select(GetColumnsString(DRIVE_COLUMNS)).From(TableDrives)
+	DriveSelectBuilder = QueryBuilder.Select(GetColumnsString(DRIVE_COLUMNS)).From(ViewDrives)
 )
 
 type Drive struct {
@@ -32,7 +34,7 @@ type Drive struct {
 	Created   time.Time
 	Id        string  `json:"id" setmap:"omitinsert"`
 	Source    *Source `db:"-"`
-	SourceUrl string  `json:"source_url" db:"source_url"`
+	SourceUrl string  `db:"source_url"`
 	Uri       string
 
 	RedditCommentId NullInt    `db:"reddit_comment_id"`
@@ -155,4 +157,25 @@ func (d *Drive) GenerateDonation() *Donation {
 	}
 
 	return dono
+}
+
+func (d *Drive) GetDonationQueryBuilder() squirrel.SelectBuilder {
+	return QueryBuilder.Select(dbUtil.GetColumnsList(&Donation{}, "")...).
+		From(TABLE_DONATIONS).
+		Where("drive_id=?", d.Id)
+}
+
+func (d *Drive) GetTopDonations(q sqlx.Queryer, limit int) ([]*Donation, error) {
+	query := d.GetDonationQueryBuilder()
+
+	if limit > 0 {
+		query = query.Limit(uint64(limit))
+	} else {
+		query = query.Limit(5)
+	}
+
+	ApplyApproved(&query)
+	query = query.OrderBy("final_amount DESC")
+
+	return QueryDonations(q, &query)
 }

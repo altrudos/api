@@ -28,7 +28,7 @@ func createDonation(name string, args []string) error {
 	var sourceUrl string
 
 	set := flag.NewFlagSet(name, flag.ExitOnError)
-	set.StringVar(&confFile,"config", "./config.toml", "Configuration file")
+	set.StringVar(&confFile, "config", "./config.toml", "Configuration file")
 	set.Float64Var(&amount, "amount", 0.00, "Donation amount")
 	set.StringVar(&charityname, "charityname", "", "Exact charity name in our db")
 	set.StringVar(&charityid, "charityid", "", "The charity ID in our db")
@@ -79,13 +79,13 @@ func createDonation(name string, args []string) error {
 	donation.CharityId = charity.Id
 	donation.DriveId = drive.Id
 	donation.Message = pgnull.NullString{message, message != ""}
-	donation.DonorAmount = amount
+	donation.DonorAmount = int(amount * 100)
 	donation.DonorCurrencyCode = currency
 	donation.DonorName = pgnull.NullString{donorname, donorname != ""}
 
 	spl("Mode:           %s", lyellow(jg.Mode))
 	spl("Charity:        %s", green(charity.Name))
-	spl("Drive:          %s", blue(drive.Name))
+	spl("URI:            %s", blue(drive.Uri))
 	spl("Message:        %s", maybeEmpty(donation.Message.String, lyellow))
 	spl("Donor Amount:   %s", lgreen(AmountToString(donation.DonorAmount)))
 	spl("Donor Currency: %s", lyellow(donation.DonorCurrencyCode))

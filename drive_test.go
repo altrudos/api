@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/monstercat/golib/expectm"
+
 	"github.com/charityhonor/ch-api/pkg/fixtures"
 )
 
@@ -93,5 +95,31 @@ func TestGetDrives(t *testing.T) {
 	}
 	if len(drives) == 0 {
 		t.Error("Expecting some drives")
+	}
+}
+
+func TestGetDriveDonations(t *testing.T) {
+	db := GetTestDb()
+	drive, err := GetDriveById(db, fixtures.DriveId)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	top, err := drive.GetTopDonations(db, 5)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(top) != 3 {
+		t.Errorf("Expected 3 donations found %d", len(top))
+	}
+
+	if err := expectm.CheckJSON(top, &expectm.ExpectedM{
+		"0.FinalAmount": 31001,
+		"0.DonorName":   "Big Spender",
+		"1.FinalAmount": 1332,
+		"2.FinalAmount": 780,
+	}); err != nil {
+		t.Error(err)
 	}
 }

@@ -7,6 +7,8 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/Masterminds/squirrel"
+
 	dbUtil "github.com/monstercat/golib/db"
 
 	"github.com/monstercat/pgnull"
@@ -150,7 +152,23 @@ func GetDonationsToCheck(tx sqlx.Queryer) ([]*Donation, error) {
 	return GetDonations(tx, ops)
 }
 
-func GetDonations(tx sqlx.Queryer, ops *DonationOperators) ([]*Donation, error) {
+func QueryDonations(q sqlx.Queryer, query *squirrel.SelectBuilder) ([]*Donation, error) {
+	s, args, err := query.ToSql()
+	if err != nil {
+		return nil, err
+	}
+	donos := make([]*Donation, 0)
+	err = sqlx.Select(q, &donos, s, args...)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return donos, nil
+		}
+		return nil, err
+	}
+	return donos, nil
+}
+
+func GetDonations(q sqlx.Queryer, ops *DonationOperators) ([]*Donation, error) {
 	query := QueryBuilder.
 		Select(GetColumns(DONATION_COLUMNS)...).
 		From(TABLE_DONATIONS)
@@ -159,16 +177,7 @@ func GetDonations(tx sqlx.Queryer, ops *DonationOperators) ([]*Donation, error) 
 		query = query.Where("status = ANY (?)", StatusesPQStringArray(ops.Statuses))
 	}
 
-	sql, args, err := query.ToSql()
-	if err != nil {
-		return nil, err
-	}
-	donos := make([]*Donation, 0)
-	err = sqlx.Select(tx, &donos, sql, args...)
-	if err != nil {
-		return nil, err
-	}
-	return donos, nil
+	return QueryDonations(q, &query)
 }
 
 func (d *Donation) GenerateReferenceCode(ext sqlx.Ext) error {
@@ -292,6 +301,21 @@ func (d *Donation) GetLastChecked() time.Time {
 	return time.Time{}
 }
 
+func (d *Donation) AmountString() string {
+	return AmountToString(d.FinalAmount)
+}
+
+func (d *Donation) IsAnonymous() bool {
+	return !d.DonorName.Valid || d.DonorName.String == ""
+}
+
+func (d *Donation) GetDonorName() string {
+	if !d.IsAnonymous() {
+		return d.DonorName.String
+	}
+	return "Anonymous"
+}
+
 func (d *Donation) CheckStatus(tx *sqlx.Tx, jg *justgiving.JustGiving) error {
 	jgDonation, err := d.GetJustGivingDonation(jg)
 	var status DonationStatus
@@ -309,4 +333,8 @@ func (d *Donation) CheckStatus(tx *sqlx.Tx, jg *justgiving.JustGiving) error {
 	d.LastChecked = pgnull.NullTime{time.Now(), true}
 	err = d.Save(tx)
 	return err
+}
+
+func ApplyApproved(q *squirrel.SelectBuilder) {
+	*q = q.Where("status=?", DonationAccepted)
 }
