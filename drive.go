@@ -2,8 +2,10 @@ package charityhonor
 
 import (
 	"database/sql"
-	"errors"
+	"strings"
 	"time"
+
+	"github.com/monstercat/golib/db"
 
 	"github.com/jmoiron/sqlx"
 	. "github.com/monstercat/pgnull"
@@ -28,10 +30,9 @@ var (
 type Drive struct {
 	Amount    int
 	Created   time.Time
-	Id        string `json:"id" setmap:"omitinsert"`
-	Source    Source
-	SourceUrl string `json:"source_url" db:"source_url"`
-	Name      string
+	Id        string  `json:"id" setmap:"omitinsert"`
+	Source    *Source `db:"-"`
+	SourceUrl string  `json:"source_url" db:"source_url"`
 	Uri       string
 
 	RedditCommentId NullInt    `db:"reddit_comment_id"`
@@ -69,20 +70,10 @@ func GetDrive(db sqlx.Queryer, where interface{}) (*Drive, error) {
 	return &x, nil
 }
 
-func GetDriveByUri(uri string) (*Drive, error) {
-	return nil, errors.New("Not implemented")
-}
-
-func GetDriveById(tx sqlx.Queryer, id string) (*Drive, error) {
-	return &Drive{
-		Name: "Fake",
-	}, nil
-}
-
-func GetDriveBySourceUrl(db *sqlx.DB, url string) (*Drive, error) {
+func GetDriveByField(q sqlx.Queryer, field, value string) (*Drive, error) {
 	query, args, err := DriveSelectBuilder.
 		From(TableDrives).
-		Where("source_url=?", url).
+		Where(field+"=?", value).
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -102,58 +93,55 @@ func GetDriveBySourceUrl(db *sqlx.DB, url string) (*Drive, error) {
 	return ds[0], nil
 }
 
-func GetOrCreateDriveBySourceUrl(db *sqlx.DB, url string) (*Drive, error) {
-	drive, err := GetDriveBySourceUrl(db, url)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			drive = &Drive{
-				SourceUrl: url,
-			}
-			tx, err := db.Beginx()
-			if err != nil {
-				tx.Rollback()
-				return nil, err
-			}
-			err = drive.Insert(tx)
-			if err != nil {
-				tx.Rollback()
-				return nil, err
-			}
-			if err := tx.Commit(); err != nil {
-				return nil, err
-			}
+func GetDriveByUri(q sqlx.Queryer, uri string) (*Drive, error) {
+	return GetDriveByField(q, "LOWER(uri)", strings.ToLower(uri))
+}
 
-			return drive, nil
-		}
+func GetDriveById(q sqlx.Queryer, id string) (*Drive, error) {
+	return GetDriveByField(q, "id", id)
+
+}
+
+func GetDriveBySourceUrl(q sqlx.Queryer, url string) (*Drive, error) {
+	return GetDriveByField(q, "source_url", url)
+}
+
+func GetOrCreateDriveBySourceUrl(ext sqlx.Ext, url string) (*Drive, error) {
+	drive, err := GetDriveBySourceUrl(db, url)
+	if err == nil {
+		return drive, nil
+	}
+	if err != sql.ErrNoRows {
+		return nil, err
+	}
+	drive = &Drive{
+		SourceUrl: url,
+	}
+	err = drive.Create(ext)
+	if err != nil {
 		return nil, err
 	}
 
 	return drive, nil
 }
 
-func (d *Drive) Insert(tx *sqlx.Tx) error {
+func (d *Drive) Create(ext sqlx.Ext) error {
 	if d.Id != "" {
 		return ErrAlreadyInserted
 	}
-
 	if err := d.GenerateUri(); err != nil {
 		return err
 	}
-
-	return DriveInsertBuilder.
-		SetMap(d.getSetMap()).
-		Suffix(RETURNING_ID).
-		RunWith(tx).
-		QueryRow().
-		Scan(&d.Id)
+	return d.Insert(ext)
 }
 
-func (d *Drive) getSetMap() M {
-	return M{
-		"source_url": d.SourceUrl,
-		"amount":     d.Amount,
-		"uri":        d.Uri,
-	}
+func (d *Drive) Insert(ext sqlx.Ext) error {
+	return DriveInsertBuilder.
+		SetMap(dbUtil.SetMap(d, true)).
+		Suffix(RETURNING_ID).
+		RunWith(ext).
+		QueryRow().
+		Scan(&d.Id)
 }
 
 func (d *Drive) GenerateUri() error {

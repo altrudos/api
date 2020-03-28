@@ -3,6 +3,8 @@ package charityhonor
 import (
 	"fmt"
 	"testing"
+
+	"github.com/charityhonor/ch-api/pkg/fixtures"
 )
 
 func TestDriveInsert(t *testing.T) {
@@ -17,7 +19,7 @@ func TestDriveInsert(t *testing.T) {
 		SourceUrl: "https://reddit.com/r/gaming",
 	}
 
-	err = d.Insert(tx)
+	err = d.Create(tx)
 	if err != nil {
 		tx.Rollback()
 		t.Fatal(err)
@@ -38,28 +40,15 @@ func TestDriveInsert(t *testing.T) {
 
 func TestDriveSelect(t *testing.T) {
 	db := GetTestDb()
-	tx, err := db.Beginx()
 	source := "https://www.reddit.com/r/pathofexile/comments/c7wdss/for_fellow_ssf_bow_users_the_lion_card_farming/eshxtna/"
-
-	//Do some cleanup
-	b := QueryBuilder.Delete(TableDrives).Where("source_url=?", source).RunWith(db)
-	_, err = b.Exec()
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	uri := GenerateUri()
 	d := Drive{
 		SourceUrl: source,
+		Uri:       uri,
 	}
-
-	err = d.Insert(tx)
-	if err != nil {
-		tx.Rollback()
+	if err := d.Insert(db); err != nil {
 		t.Fatal(err)
-	}
-
-	if err := tx.Commit(); err != nil {
-		t.Fatal(err)
+		return
 	}
 
 	drive, err := GetDriveBySourceUrl(db, source)
@@ -70,6 +59,29 @@ func TestDriveSelect(t *testing.T) {
 	if drive.SourceUrl != source {
 		t.Error("Wrong source URL returned")
 	}
+
+	drive, err = GetDriveById(db, fixtures.DriveId)
+	if err != nil {
+		t.Error(err)
+	}
+
+	drive, err = GetDriveByUri(db, fixtures.DriveUri)
+	if err != nil {
+		t.Error(err)
+	}
+
+	// This needs to be tested last because it causes the Tx to have an error
+	d2 := Drive{
+		SourceUrl: source,
+		Uri:       uri,
+	}
+	err = d2.Insert(db)
+	if err == nil {
+		t.Error("Should have error for duplicate uri")
+	}
+
+	// Cleanup
+	_, err = db.Exec(`DELETE FROM drives WHERE uri = $1`, uri)
 }
 
 func TestGetDrives(t *testing.T) {
