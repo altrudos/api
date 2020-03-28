@@ -20,8 +20,13 @@ import (
  * redirected to a URL that URL is just outputted.
  */
 func populateCharities(name string, args []string) error {
-	db := MustGetDefaultDb()
-	jg := MustGetDefaultJustGiving()
+	var confFile string
+	flag.StringVar(&confFile,"config", "./config.toml", "Configuration file")
+	flag.Parse()
+	services := MustGetConfigServices(confFile)
+	db := services.DB
+	jg := services.JG
+
 	var search string
 	var charityIds string
 
