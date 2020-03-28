@@ -41,6 +41,7 @@ func main() {
 		"create-donation":    createDonation,
 		"check-donations":    checkDonations,
 		"populate-charities": populateCharities,
+		"drives":             cmdDrives,
 	})
 	if err != nil {
 		switch v := err.(type) {

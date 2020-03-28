@@ -21,22 +21,20 @@ import (
  */
 func populateCharities(name string, args []string) error {
 	var confFile string
-	flag.StringVar(&confFile,"config", "./config.toml", "Configuration file")
-	flag.Parse()
-	services := MustGetConfigServices(confFile)
-	db := services.DB
-	jg := services.JG
-
 	var search string
 	var charityIds string
 
-	set := flag.NewFlagSet("", flag.ExitOnError)
+	set := flag.NewFlagSet(name, flag.ExitOnError)
+	set.StringVar(&confFile,"config", "./config.toml", "Configuration file")
 	set.StringVar(&search, "search", "", "Search for charities with this name.")
 	set.StringVar(&charityIds, "charityids", "", "ID on JustGiving of the charity to add.")
-
 	if err := set.Parse(args); err != nil {
 		return err
 	}
+
+	services := MustGetConfigServices(confFile)
+	db := services.DB
+	jg := services.JG
 
 	if search == "" && charityIds == "" {
 		return errors.New("Either --search or --charityid is required")
