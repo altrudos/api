@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"strconv"
 	"time"
@@ -11,8 +12,12 @@ import (
 )
 
 func checkDonations(name string, args []string) error {
-	db := MustGetDefaultDb()
-	jg := MustGetDefaultJustGiving()
+	var confFile string
+	flag.StringVar(&confFile,"config", "./config.toml", "Configuration file")
+	flag.Parse()
+	services := MustGetConfigServices(confFile)
+	db := services.DB
+	jg := services.JG
 
 	Pls("Querying for donations to check...")
 
