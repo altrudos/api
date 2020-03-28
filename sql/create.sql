@@ -42,4 +42,10 @@ CREATE TABLE IF NOT EXISTS donations (
   status donation_status NOT NULL DEFAULT 'Pending',
   reference_code TEXT NOT NULL UNIQUE
 );
+CREATE INDEX donation_charity_id ON donations(charity_id);
+CREATE INDEX donation_drive_id ON donations(drive_id);
+CREATE INDEX donation_donor_amount ON donations(donor_amount);
+CREATE INDEX donation_final_amount ON donations(final_amount);
+CREATE INDEX donation_created ON donations(created):
+
 COMMIT;
