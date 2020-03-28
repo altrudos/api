@@ -14,7 +14,7 @@ import (
 func checkDonations(name string, args []string) error {
 	var confFile string
 	set := flag.NewFlagSet(name, flag.ExitOnError)
-	set.StringVar(&confFile,"config", "./config.toml", "Configuration file")
+	set.StringVar(&confFile, "config", "./config.toml", "Configuration file")
 	if err := set.Parse(args); err != nil {
 		return err
 	}
@@ -58,7 +58,7 @@ func checkDonations(name string, args []string) error {
 			return err
 		}
 
-		dono.FinalAmount = amount
+		dono.FinalAmount = int(amount * 100)
 		dono.Status = DonationAccepted
 		if err := dono.Save(db); err != nil {
 			return err

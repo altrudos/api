@@ -17,7 +17,7 @@ func cmdDrives(name string, args []string) error {
 func listDrives(name string, args []string) error {
 	var confFile string
 	set := flag.NewFlagSet(name, flag.ExitOnError)
-	set.StringVar(&confFile,"config", "./config.toml", "Configuration file")
+	set.StringVar(&confFile, "config", "./config.toml", "Configuration file")
 	if err := set.Parse(args); err != nil {
 		return err
 	}
@@ -31,7 +31,7 @@ func listDrives(name string, args []string) error {
 	for _, d := range drives {
 		Pls("-=-=-=-=-=-=-=-=-=-=-=-=-=")
 		Pls("Drive Id:     %s", d.Id)
-		Pls("Drive Name:   %s", d.Name)
+		Pls("Drive URI:    %s", d.Uri)
 	}
 	Pls("-=-=-=-=-=-=-=-=-=-=-=-=-=")
 
