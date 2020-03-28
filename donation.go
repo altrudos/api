@@ -192,7 +192,6 @@ func (d *Donation) GenerateReferenceCode(ext sqlx.Ext) error {
 
 //Create does magic before insert into db
 func (d *Donation) Create(tx *sqlx.Tx) error {
-	fmt.Println("charityId", d.CharityId)
 	charity, err := GetCharityById(tx, d.CharityId)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -222,7 +221,6 @@ func (d *Donation) Create(tx *sqlx.Tx) error {
 
 //Raw insert into db
 func (d *Donation) Insert(tx *sqlx.Tx) error {
-	fmt.Println("setmap")
 	return DonationInsertBuilder.
 		SetMap(dbUtil.SetMap(d, true)).
 		Suffix(RETURNING_ID).

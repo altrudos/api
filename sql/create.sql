@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS donations (
   donor_amount NUMERIC,
   donor_currency_code TEXT,
   donor_name TEXT,
-  final_amount NUMERIC,
+  final_amount NUMERIC NOT NULL DEFAULT 0,
   last_checked TIMESTAMPTZ,
   next_check TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   message TEXT,

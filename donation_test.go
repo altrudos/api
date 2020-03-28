@@ -37,12 +37,12 @@ func TestDonationCRUD(t *testing.T) {
 	drive, tx, _ := getDriveForTesting()
 
 	donation := Donation{
-		DriveId:      drive.Id,
-		CharityId:    fixtures.CharityId1,
-		Amount:       float64(12.34),
-		CurrencyCode: "USD",
-		DonorName:    NullString{"Vindexus", true},
-		Message:      NullString{`I'm just trying this <strong>OUT!</strong>`, true},
+		DriveId:           drive.Id,
+		CharityId:         fixtures.CharityId1,
+		DonorAmount:       float64(12.34),
+		DonorCurrencyCode: "USD",
+		DonorName:         NullString{"Vindexus", true},
+		Message:           NullString{`I'm just trying this <strong>OUT!</strong>`, true},
 	}
 
 	if err := donation.Create(tx); err != nil {
@@ -62,12 +62,12 @@ func TestDonationCRUD(t *testing.T) {
 		t.Error(err)
 	}
 
-	if dono2.Amount != donation.Amount {
-		t.Errorf("Expected Amount '%v' but got '%v'", donation.Amount, dono2.Amount)
+	if dono2.DonorAmount != donation.DonorAmount {
+		t.Errorf("Expected Amount '%v' but got '%v'", donation.DonorAmount, dono2.DonorAmount)
 	}
 
-	if dono2.CurrencyCode != donation.CurrencyCode {
-		t.Errorf("Expected CurrencyCode '%v' but got '%v'", donation.CurrencyCode, dono2.CurrencyCode)
+	if dono2.DonorCurrencyCode != donation.DonorCurrencyCode {
+		t.Errorf("Expected CurrencyCode '%v' but got '%v'", donation.DonorCurrencyCode, dono2.DonorCurrencyCode)
 	}
 
 	if dono2.Message != donation.Message {
@@ -91,13 +91,13 @@ func TestDonationCRUD(t *testing.T) {
 		t.Error("Get donation link should fail if missing data")
 	}
 
-	donError.Amount = 30
+	donError.DonorAmount = 30
 	_, err = donError.GetDonationLink(jg)
 	if err == nil {
 		t.Error("Get donation link should fail if missing amount")
 	}
 
-	donError.CurrencyCode = "USD"
+	donError.DonorCurrencyCode = "USD"
 	_, err = donError.GetDonationLink(jg)
 	if err == nil {
 		t.Error("Get donation link should fail if missing currency code")
@@ -120,7 +120,7 @@ func TestDonationCRUD(t *testing.T) {
 
 	newAmount := float64(1337)
 	newName := "Colin 9430843290"
-	dono2.Amount = newAmount
+	dono2.DonorAmount = newAmount
 	dono2.DonorName = NullString{newName, true}
 	err = dono2.Save(tx)
 	if err != nil {
@@ -135,8 +135,8 @@ func TestDonationCRUD(t *testing.T) {
 		t.Errorf("Expected name %v got %v", newName, dono3.DonorName)
 	}
 
-	if dono3.Amount != newAmount {
-		t.Errorf("Expected amount %v got %v", newAmount, dono3.Amount)
+	if dono3.DonorAmount != newAmount {
+		t.Errorf("Expected amount %v got %v", newAmount, dono3.DonorAmount)
 	}
 
 	// Get multiple donations
