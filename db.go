@@ -17,20 +17,6 @@ var (
 	QueryBuilder = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 )
 
-func MustGetDefaultDb() *sqlx.DB {
-	if db != nil {
-		return db
-	}
-	url := GetEnv("PGURL", "postgresql://charityhonor@localhost/charityhonor?sslmode=disable")
-	var err error
-	db, err = GetPostgresConnection(url)
-	if err != nil {
-		panic(err)
-	}
-
-	return db
-}
-
 func GetPostgresConnection(url string) (*sqlx.DB, error) {
 	connection, err := pq.ParseURL(url)
 	if err != nil {
