@@ -28,13 +28,13 @@ func (s *Server) ParseFlags() error {
 	return nil
 }
 
-func (s *Server) AddRoutes(rs ...[]Route) error {
+func (s *Server) AddRoutes(rs ...[]*Route) error {
 	if s.R == nil {
 		s.R = NewRouter()
 	}
 	for _, rr := range rs {
 		for _, r := range rr {
-			if err := s.R.AddRoute(&r); err != nil {
+			if err := s.R.AddRoute(r); err != nil {
 				return err
 			}
 		}
@@ -43,14 +43,17 @@ func (s *Server) AddRoutes(rs ...[]Route) error {
 }
 
 func (s *Server) Run() error {
-	return http.ListenAndServe(":" + strconv.Itoa(s.Port), s)
+	return http.ListenAndServe(":"+strconv.Itoa(s.Port), s)
 }
 
-func (s *Server) ServeHTTP(w http.ResponseWriter, r * http.Request) {
+func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ctx := &RouteContext{
 		Services: s.S,
-		W: w,
-		R: r,
+		W:        w,
+		R:        r,
+		Method:   r.Method,
+		Path:     r.URL.Path,
+		Query:    r.URL.Query(),
 	}
 	route, err := s.R.Match(r.Method, r.URL.Path, ctx)
 	if err == ErrPathNotFound || route == nil {

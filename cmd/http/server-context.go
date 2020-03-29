@@ -16,23 +16,12 @@ type RouteContext struct {
 	W http.ResponseWriter
 	R *http.Request
 
+	Method string
+	Path   string
 	UserId string // LoggedOn User
-	Params  map[string]string
-	Query   url.Values
+	Params map[string]string
+	Query  url.Values
 }
-
-func (c *RouteContext) HandledError(err error) bool {
-	if err == nil {
-		return false
-	}
-	c.HandleError(err)
-	return true
-}
-
-func (c *RouteContext) HandleError(err error) {
-	//TODO: implement
-}
-
 
 func (c *RouteContext) Status(status int) {
 	c.W.WriteHeader(status)
