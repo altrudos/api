@@ -16,6 +16,7 @@ type Server struct {
 
 func (s *Server) ParseFlags() error {
 	var confFile string
+	flag.IntVar(&s.Port, "port", 8080, "Server port")
 	flag.StringVar(&confFile, "config", "", "Configuration File")
 	flag.Parse()
 

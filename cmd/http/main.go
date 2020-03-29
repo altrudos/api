@@ -1,9 +1,7 @@
 package main
 
 func main() {
-	s := &Server{
-		Port: 8080,
-	}
+	s := &Server{}
 	if err := s.ParseFlags(); err != nil {
 		panic(err)
 	}
