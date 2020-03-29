@@ -32,7 +32,7 @@ var (
 type Drive struct {
 	Amount    int
 	Created   time.Time
-	Id        string  `json:"id" setmap:"omitinsert"`
+	Id        string  `setmap:"omitinsert"`
 	Source    *Source `db:"-"`
 	SourceUrl string  `db:"source_url"`
 	Uri       string
@@ -52,18 +52,6 @@ type Drive struct {
 	DonorAmountMax        int      `db:"donor_amount_max" setmap:"-"`
 }
 
-func GetDrives(db sqlx.Queryer, where interface{}) ([]*Drive, error) {
-	var xs []*Drive
-	c := &Cond{
-		Where:    where,
-		OrderBys: []string{"created DESC"},
-	}
-	if err := SelectForStruct(db, &xs, ViewDrives, c); err != nil {
-		return nil, err
-	}
-	return xs, nil
-}
-
 func GetDrive(db sqlx.Queryer, where interface{}) (*Drive, error) {
 	var x Drive
 	if err := GetForStruct(db, &x, ViewDrives, where); err != nil {
@@ -73,26 +61,7 @@ func GetDrive(db sqlx.Queryer, where interface{}) (*Drive, error) {
 }
 
 func GetDriveByField(q sqlx.Queryer, field, value string) (*Drive, error) {
-	query, args, err := DriveSelectBuilder.
-		From(ViewDrives).
-		Where(field+"=?", value).
-		ToSql()
-	if err != nil {
-		return nil, err
-	}
-	ds := make([]*Drive, 0)
-	err = sqlx.Select(q, &ds, query, args...)
-	if err != nil {
-		return nil, err
-	}
-	if len(ds) > 1 {
-		return nil, ErrTooManyFound
-	}
-	if len(ds) == 0 {
-		return nil, sql.ErrNoRows
-	}
-
-	return ds[0], nil
+	return GetDrive(q, squirrel.Eq{field: value})
 }
 
 func GetDriveByUri(q sqlx.Queryer, uri string) (*Drive, error) {

@@ -60,19 +60,43 @@ type Cond struct {
 	Offset   int
 }
 
-func (c *Cond) Apply(qry *squirrel.SelectBuilder) {
+func (c *Cond) DefaultLimit(limit int) {
+	if c.Limit == 0 {
+		c.Limit = limit
+	}
+}
+func (c *Cond) DefaultOffset(offset int) {
+	if c.Offset == 0 {
+		c.Offset = offset
+	}
+}
+
+func (c *Cond) DefaultOrderBys(orders ...string) {
+	if len(c.OrderBys) == 0 {
+		c.OrderBys = orders
+	}
+}
+
+func (c *Cond) ApplyWithoutLimits(qry *squirrel.SelectBuilder) {
 	if c.Where != nil {
 		*qry = qry.Where(c.Where)
 	}
 	if len(c.OrderBys) > 0 {
 		*qry = qry.OrderBy(c.OrderBys...)
 	}
+}
+func (c *Cond) ApplyLimits(qry *squirrel.SelectBuilder) {
 	if c.Limit > 0 {
 		*qry = qry.Limit(uint64(c.Limit))
 	}
 	if c.Offset > 0 {
 		*qry = qry.Offset(uint64(c.Offset))
 	}
+}
+
+func (c *Cond) Apply(qry *squirrel.SelectBuilder) {
+	c.ApplyWithoutLimits(qry)
+	c.ApplyLimits(qry)
 }
 
 func SelectForStruct(db sqlx.Queryer, slice interface{}, table string, cond *Cond) error {
@@ -91,4 +115,12 @@ func GetForStruct(db sqlx.Queryer, val interface{}, table string, where interfac
 	}
 	return dbUtil.Get(db, val, qry)
 
+}
+
+func GetCount(db sqlx.Queryer, qry squirrel.SelectBuilder) (int, error) {
+	var total int
+	if err:= dbUtil.Get(db, &total, qry); err != nil {
+		return 0, err
+	}
+	return total, nil
 }

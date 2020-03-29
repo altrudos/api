@@ -19,12 +19,13 @@ type Charity struct {
 }
 
 var (
-	TABLE_CHARITIES = "charities"
+	TableCharities = "charities"
+	ViewCharities  = "charities_view"
 )
 
 var (
-	CharityInsertBuilder = QueryBuilder.Insert(TABLE_CHARITIES)
-	CharitySelectBuilder = QueryBuilder.Select(GetColumns(CHARITY_COLUMNS)...).From(TABLE_CHARITIES)
+	CharityInsertBuilder = QueryBuilder.Insert(TableCharities)
+	CharitySelectBuilder = QueryBuilder.Select(GetColumns(CHARITY_COLUMNS)...).From(TableCharities)
 )
 
 var (
