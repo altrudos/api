@@ -1,0 +1,5 @@
+Postgres="postgresql://charityhonor@localhost/ch?sslmode=disable"
+
+[JustGiving]
+AppId="some-app-id"
+Mode="staging"
