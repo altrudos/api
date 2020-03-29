@@ -13,10 +13,12 @@ import (
 )
 
 type Charity struct {
-	Description         string
+	Description         string `db:"description"`
 	Id                  string `setmap:"omitinsert"`
 	JustGivingCharityId int    `db:"jg_charity_id"`
-	Name                string
+	Name                string `db:"name"`
+	LogoUrl             string `db:"logo_url"`
+	Summary             string `db:"summary"`
 
 	// From View
 	MostRecentDonorAmount int      `db:"most_recent_donor_amount" setmap:"-"`

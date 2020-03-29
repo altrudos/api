@@ -19,10 +19,10 @@ CREATE UNIQUE INDEX drives_uri ON drives (uri);
 CREATE TABLE IF NOT EXISTS charities
 (
     id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name          TEXT,
-    logo_url      TEXT,
-    description   TEXT,
-    summary       TEXT,
+    name          TEXT NOT NULL DEFAULT '',
+    logo_url      TEXT NOT NULL DEFAULT '',
+    description   TEXT NOT NULL DEFAULT '',
+    summary       TEXT NOT NULL DEFAULT '',
     jg_charity_id BIGINT
 );
 CREATE UNIQUE INDEX charities_jg_charity_id_unique ON charities (jg_charity_id);

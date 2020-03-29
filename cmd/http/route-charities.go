@@ -6,9 +6,14 @@ import (
 	. "github.com/charityhonor/ch-api"
 )
 
+var (
+	GetCharitiesRoute = NewGET("/charities", getCharities)
+	GetCharityRoute   = NewGET("/charity/:id", getById("id", "Charity", getCharity))
+)
+
 var CharityRoutes = []*Route{
-	NewGET("/charities", getCharities),
-	NewGET("/charity/:id", getById("id", "Charity", getCharity)),
+	GetCharitiesRoute,
+	GetCharityRoute,
 }
 
 func getCharities(c *RouteContext) {
