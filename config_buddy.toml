@@ -1,4 +1,4 @@
-Postgres="postgresql://charityhonor@localhost/ch?sslmode=disable"
+Postgres="postgresql://charityhonor@postgres/ch?sslmode=disable"
 
 [JustGiving]
 AppId="some-app-id"
