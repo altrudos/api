@@ -19,7 +19,9 @@ func getDriveForTesting() (*Drive, *sqlx.Tx, *sqlx.DB) {
 	numTestDrives++
 	db := GetTestDb()
 	drive := &Drive{
-		SourceUrl: "http://www.reddit.com/r/number" + strconv.Itoa(numTestDrives),
+		SourceUrl:  "http://www.reddit.com/r/number" + strconv.Itoa(numTestDrives),
+		SourceKey:  "url" + strconv.Itoa(numTestDrives),
+		SourceType: STURL,
 	}
 
 	tx, err := db.Beginx()

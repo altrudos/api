@@ -1,33 +1,41 @@
 package charityhonor
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/monstercat/golib/expectm"
+)
 
 func TestParseSourceURL(t *testing.T) {
 	type sourceTest struct {
 		URL          string
 		ExpectedType SourceType
-		ExpectedID   SourceID
+		ExpectedKey  string
 		Error        error
+		ExpectedMeta *expectm.ExpectedM
 	}
 
 	tests := []sourceTest{
 		{
 			URL:          "https://www.reddit.com/r/vancouver/comments/c78dd0/just_driving_the_wrong_way_on_a_highway_exit_with/",
 			ExpectedType: STRedditPost,
-			ExpectedID:   "c78dd0",
+			ExpectedKey:  "c78dd0",
 			Error:        nil,
 		},
 		{
 			URL:          "https://np.reddit.com/r/pathofexile/comments/c6oy9e/to_everyone_that_feels_bored_by_the_game_or/esai27c/?context=3",
 			ExpectedType: STRedditComment,
-			ExpectedID:   "esai27c",
+			ExpectedKey:  "esai27c",
 			Error:        nil,
+			ExpectedMeta: &expectm.ExpectedM{
+				"subreddit": "pathofexile",
+			},
 		},
 		{
 			URL:          "https://www.reddit.com/about",
 			Error:        nil,
 			ExpectedType: STURL,
-			ExpectedID:   "https://www.reddit.com/about",
+			ExpectedKey:  "https://www.reddit.com/about",
 		},
 		{
 			URL:   "facebook colin",
@@ -41,7 +49,7 @@ func TestParseSourceURL(t *testing.T) {
 			URL:          "http://twitter.com/@whatever",
 			Error:        nil,
 			ExpectedType: STURL,
-			ExpectedID:   "http://twitter.com/@whatever",
+			ExpectedKey:  "http://twitter.com/@whatever",
 		},
 	}
 
@@ -58,11 +66,19 @@ func TestParseSourceURL(t *testing.T) {
 				continue
 			}
 		}
-		if source.Type != test.ExpectedType {
-			t.Errorf("#%d: Type should be %v, found %v", i, test.ExpectedType, source.Type)
+		if source.GetType() != test.ExpectedType {
+			t.Errorf("[%d] Type should be %v, found %v", i, test.ExpectedType, source.GetType())
 		}
-		if source.ID != test.ExpectedID {
-			t.Errorf("#%d: ID should be %v, found %v", i, test.ExpectedID, source.ID)
+		if source.GetKey() != test.ExpectedKey {
+			t.Errorf("[%d] Key should be %v, found %v", i, test.ExpectedKey, source.GetKey())
+		}
+		if test.ExpectedMeta != nil {
+			meta, err := source.GetMeta()
+			if err != nil {
+				t.Errorf("[%d] Error getting meta: %s", i, err)
+			} else if err := expectm.CheckJSON(meta, test.ExpectedMeta); err != nil {
+				t.Errorf("[%d] %s", i, err)
+			}
 		}
 	}
 }
