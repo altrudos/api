@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"time"
 
 	"github.com/pkg/errors"
 
@@ -48,12 +49,27 @@ func showDrive(name string, args []string) error {
 
 	Pls("Top %d Donations", len(donos))
 	for _, v := range donos {
-		var name = v.GetDonorName()
-		if v.IsAnonymous() {
-			name = gray(name)
-		}
-		Pls("$%s from %s", v.AmountString(), name)
+		printDonation(v)
+	}
+
+	recents, err := drive.GetTopDonations(db, 5)
+	if err != nil {
+		return errors.Wrap(err, "error getting recent donations")
+	}
+
+	Pls("")
+	Pls("Recent %d Donations", len(recents))
+	for _, v := range recents {
+		printDonation(v)
 	}
 
 	return nil
+}
+
+func printDonation(v *Donation) {
+	var name = v.GetDonorName()
+	if v.IsAnonymous() {
+		name = gray(name)
+	}
+	Pls("$%s from %s at %s", v.AmountString(), name, v.Created.Format(time.RFC1123))
 }

@@ -122,4 +122,22 @@ func TestGetDriveDonations(t *testing.T) {
 	}); err != nil {
 		t.Error(err)
 	}
+
+	recent, err := drive.GetRecentDonations(db, 5)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if len(top) != 3 {
+		t.Errorf("Expected 3 donations found %d", len(top))
+	}
+
+	if err := expectm.CheckJSON(recent, &expectm.ExpectedM{
+		"0.FinalAmount": 1332,
+		"1.DonorName":   "Big Spender",
+		"1.FinalAmount": 31001,
+		"2.FinalAmount": 780,
+	}); err != nil {
+		t.Error(err)
+	}
 }
