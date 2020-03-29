@@ -2,6 +2,8 @@ BEGIN;
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+CREATE TYPE source_type AS ENUM ('reddit_comment', 'reddit_post', 'url');
+
 CREATE TABLE IF NOT EXISTS drives
 (
     id                UUID PRIMARY KEY     DEFAULT uuid_generate_v4(),
@@ -9,12 +11,11 @@ CREATE TABLE IF NOT EXISTS drives
     amount            NUMERIC     NOT NULL DEFAULT 0,
     created           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     source_url        TEXT,
-    reddit_comment_id BIGINT,
-    reddit_username   TEXT,
-    reddit_subreddit  TEXT,
-    reddit_markdown   TEXT
+    source_type       source_type,
+    source_key        TEXT NOT NULL
 );
 CREATE UNIQUE INDEX drives_uri ON drives (uri);
+CREATE UNIQUE INDEX drives_source ON drives (source_type, source_key);
 
 CREATE TABLE IF NOT EXISTS charities
 (

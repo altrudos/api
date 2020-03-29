@@ -1,5 +1,5 @@
-INSERT INTO drives (id, source_url, uri, amount)
-VALUES ('3656cf1d-8826-404c-8f85-77f3e1f50464', 'https://www.reddit.com/r/wholesomememes', 'PrettyPinkMoon', 0);
+INSERT INTO drives (id, source_url, source_type, source_key, uri, amount)
+VALUES ('3656cf1d-8826-404c-8f85-77f3e1f50464', 'https://www.reddit.com/r/PublicFreakout/comments/fnnujk/ny_not_handling_this_shit_well/flbfd1j/', 'reddit_comment', 'flbfd1j', 'PrettyPinkMoon', 0);
 
 INSERT INTO charities (id, name, logo_url, description, summary, jg_charity_id)
 VALUES ('9d0b23cd-657b-4cc4-8258-a8cabb1f6847', 'The Demo Charity', 'https://images.staging.justgiving.com/image/fd300863-43d6-4da7-b5ac-724e008f483d.png"', '29c50192-e194-4fd8-9ae5-333d54e9c357', '', 2050),

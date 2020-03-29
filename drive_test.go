@@ -18,7 +18,9 @@ func TestDriveInsert(t *testing.T) {
 	}
 
 	d := Drive{
-		SourceUrl: "https://reddit.com/r/gaming",
+		SourceUrl:  "https://reddit.com/r/gaming",
+		SourceType: STURL,
+		SourceKey:  "rgaming",
 	}
 
 	err = d.Create(tx)
@@ -45,8 +47,10 @@ func TestDriveSelect(t *testing.T) {
 	source := "https://www.reddit.com/r/pathofexile/comments/c7wdss/for_fellow_ssf_bow_users_the_lion_card_farming/eshxtna/"
 	uri := GenerateUri()
 	d := Drive{
-		SourceUrl: source,
-		Uri:       uri,
+		SourceUrl:  source,
+		SourceKey:  "eshxtna",
+		SourceType: STRedditComment,
+		Uri:        uri,
 	}
 	if err := d.Insert(db); err != nil {
 		t.Fatal(err)

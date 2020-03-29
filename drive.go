@@ -34,13 +34,10 @@ type Drive struct {
 	Created   time.Time
 	Id        string  `setmap:"omitinsert"`
 	Source    *Source `db:"-"`
-	SourceUrl string  `db:"source_url"`
-	Uri       string
-
-	RedditCommentId NullInt    `db:"reddit_comment_id"`
-	RedditUsername  NullString `db:"reddit_username"`
-	RedditSubreddit NullString `db:"reddit_subreddit"`
-	RedditMarkdown  NullString `db:"reddit_markdown"`
+	SourceUrl  string     `db:"source_url"`
+	SourceKey  string     `db:"source_key"`
+	SourceType SourceType `db:"source_type"`
+	Uri        string
 
 	// From View
 	MostRecentDonorAmount int      `db:"most_recent_donor_amount" setmap:"-"`
