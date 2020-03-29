@@ -165,7 +165,7 @@ func (d *Drive) GetDonationQueryBuilder() squirrel.SelectBuilder {
 		Where("drive_id=?", d.Id)
 }
 
-func (d *Drive) GetTopDonations(q sqlx.Queryer, limit int) ([]*Donation, error) {
+func (d *Drive) ApprovedDonations(q sqlx.Queryer, limit int) *squirrel.SelectBuilder {
 	query := d.GetDonationQueryBuilder()
 
 	if limit > 0 {
@@ -175,7 +175,19 @@ func (d *Drive) GetTopDonations(q sqlx.Queryer, limit int) ([]*Donation, error) 
 	}
 
 	ApplyApproved(&query)
-	query = query.OrderBy("final_amount DESC")
+	return &query
+}
 
-	return QueryDonations(q, &query)
+func (d *Drive) GetTopDonations(q sqlx.Queryer, limit int) ([]*Donation, error) {
+	query := d.ApprovedDonations(q, limit)
+	*query = query.OrderBy("final_amount DESC")
+
+	return QueryDonations(q, query)
+}
+
+func (d *Drive) GetRecentDonations(q sqlx.Queryer, limit int) ([]*Donation, error) {
+	query := d.ApprovedDonations(q, limit)
+	*query = query.OrderBy("created DESC")
+
+	return QueryDonations(q, query)
 }
