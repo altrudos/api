@@ -86,18 +86,6 @@ func TestDriveSelect(t *testing.T) {
 	_, err = db.Exec(`DELETE FROM drives WHERE uri = $1`, uri)
 }
 
-func TestGetDrives(t *testing.T) {
-	db := GetTestDb()
-
-	drives, err := GetDrives(db, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(drives) == 0 {
-		t.Error("Expecting some drives")
-	}
-}
-
 func TestGetDriveDonations(t *testing.T) {
 	db := GetTestDb()
 	drive, err := GetDriveById(db, fixtures.DriveId)
