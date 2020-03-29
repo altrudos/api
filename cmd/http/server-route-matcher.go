@@ -80,6 +80,9 @@ func (r *RouteMatcherString) TokenMatch(path string, route *Route) (string, bool
 	if len(path) == rlen {
 		return "", true
 	}
+	if path[rlen-1] == '/' {
+		return path[rlen:], true
+	}
 	switch path[rlen] {
 	case '/':
 		// Return everything without the /

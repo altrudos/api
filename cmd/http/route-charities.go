@@ -15,7 +15,7 @@ func getCharities(c *RouteContext) {
 	cond := GetDefaultCondFromQuery(c.Query)
 	//TODO: add search params here into cond
 
-	var xs []*Drive
+	var xs []*Charity
 	defaultGetAll(c, "Charities", ViewCharities, &xs, cond)
 }
 

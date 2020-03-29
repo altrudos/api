@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/monstercat/golib/db"
+	. "github.com/monstercat/pgnull"
 
 	"github.com/charityhonor/ch-api/pkg/justgiving"
 
@@ -16,6 +17,15 @@ type Charity struct {
 	Id                  string `setmap:"omitinsert"`
 	JustGivingCharityId int    `db:"jg_charity_id"`
 	Name                string
+
+	// From View
+	MostRecentDonorAmount int      `db:"most_recent_donor_amount" setmap:"-"`
+	MostRecentFinalAmount int      `db:"most_recent_final_amount" setmap:"-"`
+	MostRecentTime        NullTime `db:"most_recent_time" setmap:"-"`
+	FinalAmountTotal      int      `db:"final_amount_total" setmap:"-"`
+	FinalAmountMax        int      `db:"final_amount_max" setmap:"-"`
+	DonorAmountTotal      int      `db:"donor_amount_total" setmap:"-"`
+	DonorAmountMax        int      `db:"donor_amount_max" setmap:"-"`
 }
 
 var (
@@ -25,7 +35,7 @@ var (
 
 var (
 	CharityInsertBuilder = QueryBuilder.Insert(TableCharities)
-	CharitySelectBuilder = QueryBuilder.Select(GetColumns(CHARITY_COLUMNS)...).From(TableCharities)
+	CharitySelectBuilder = QueryBuilder.Select(GetColumns(CharityColumns)...).From(TableCharities)
 )
 
 var (
@@ -34,7 +44,7 @@ var (
 )
 
 var (
-	CHARITY_COLUMNS = map[string]string{
+	CharityColumns = map[string]string{
 		"Name":                "name",
 		"Description":         "description",
 		"JustGivingCharityId": "jg_charity_id",
