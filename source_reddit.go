@@ -22,9 +22,11 @@ type RedditCommentInfo struct {
 
 // Comment or Post
 type RedditThing struct {
-	Author    string `json:"author"`
-	Body      string `json:"body"`
-	Subreddit string `json:"subreddit"`
+	Author    string  `json:"author"`
+	Body      string  `json:"body"`
+	Created   float64 `json:"created"`
+	Permalink string  `json:"permalink"`
+	Subreddit string  `json:"subreddit"`
 }
 
 func (c *RedditCommentInfo) ToMap() FlatMap {
