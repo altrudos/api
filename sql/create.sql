@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS drives
     created           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     source_url        TEXT,
     source_type       source_type,
-    source_key        TEXT NOT NULL
+    source_key        TEXT NOT NULL,
+    source_meta       JSONB NOT NULL DEFAULT '{}'
 );
 CREATE UNIQUE INDEX drives_uri ON drives (uri);
 CREATE UNIQUE INDEX drives_source ON drives (source_type, source_key);

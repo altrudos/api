@@ -18,25 +18,20 @@ var (
 	ViewDrives  = "drives_view"
 )
 
-var DRIVE_COLUMNS map[string]string = map[string]string{
-	"Id":        "id",
-	"SourceUrl": "source_url",
-	"Amount":    "amount",
-}
-
 var (
 	DriveInsertBuilder = QueryBuilder.Insert(TableDrives)
-	DriveSelectBuilder = QueryBuilder.Select(GetColumnsString(DRIVE_COLUMNS)).From(ViewDrives)
+	DriveSelectBuilder = QueryBuilder.Select("*").From(ViewDrives)
 )
 
 type Drive struct {
 	Amount    int
 	Created   time.Time
 	Id        string  `setmap:"omitinsert"`
-	Source    *Source `db:"-"`
+	Source     Source     `db:"-"`
 	SourceUrl  string     `db:"source_url"`
 	SourceKey  string     `db:"source_key"`
 	SourceType SourceType `db:"source_type"`
+	SourceMeta FlatMap    `db:"source_meta"`
 	Uri        string
 
 	// From View
@@ -82,11 +77,36 @@ func GetOrCreateDriveBySourceUrl(ext sqlx.Ext, url string) (*Drive, error) {
 	if err != sql.ErrNoRows {
 		return nil, err
 	}
-	drive = &Drive{
-		SourceUrl: url,
+	drive, err = CreatedDriveBySourceUrl(ext, url)
+	if err != nil {
+		return nil, err
 	}
 	err = drive.Create(ext)
 	if err != nil {
+		return nil, err
+	}
+
+	return drive, nil
+}
+
+func CreatedDriveBySourceUrl(ext sqlx.Ext, url string) (*Drive, error) {
+	source, err := ParseSourceURL(url)
+	if err != nil {
+		return nil, err
+	}
+	meta, err := source.GetMeta()
+	if err != nil {
+		return nil, err
+	}
+	drive := &Drive{
+		Source:     source,
+		SourceUrl:  url,
+		SourceKey:  source.GetKey(),
+		SourceType: source.GetType(),
+		SourceMeta: meta,
+	}
+
+	if err := drive.Create(ext); err != nil {
 		return nil, err
 	}
 
@@ -104,9 +124,12 @@ func (d *Drive) Create(ext sqlx.Ext) error {
 }
 
 func (d *Drive) Insert(ext sqlx.Ext) error {
-	return DriveInsertBuilder.
-		SetMap(dbUtil.SetMap(d, true)).
-		Suffix(RETURNING_ID).
+	setMap := dbUtil.SetMap(d, true)
+	query := DriveInsertBuilder.
+		SetMap(setMap).
+		Suffix(RETURNING_ID)
+
+	return query.
 		RunWith(ext).
 		QueryRow().
 		Scan(&d.Id)
