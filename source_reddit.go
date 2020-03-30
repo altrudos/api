@@ -9,12 +9,26 @@ import (
 	"github.com/monstercat/request"
 )
 
+var redditUrlRegexp = "\\/comments\\/([a-zA-Z0-9]+)\\/?[[a-zA-Z0-9\\_]+?\\/([a-zA-Z0-9]+)?"
+
 type RedditPostInfo struct {
 	Subreddit string `json:"subreddit"`
 }
 
 type RedditCommentInfo struct {
 	Subreddit string `json:"subreddit"`
+}
+
+func (c *RedditCommentInfo) ToMap() FlatMap {
+	return FlatMap{
+		"subreddit": c.Subreddit,
+	}
+}
+
+func (c *RedditPostInfo) ToMap() FlatMap {
+	return FlatMap{
+		"subreddit": c.Subreddit,
+	}
 }
 
 type RedditCommentInfoResponse struct {
@@ -45,8 +59,19 @@ func (p *RedditPostSource) GetKey() string {
 	return p.ID
 }
 
-func (p *RedditPostSource) GetMeta() (interface{}, error) {
-	return M{}, nil
+func (p *RedditPostSource) GetMeta() (FlatMap, error) {
+	var body RedditPostInfoResponse
+	params := request.Params{
+		Url: "https://api.reddit.com/api/info?id=t1_" + p.ID,
+	}
+	if err := redditRequest(&params, nil, &body); err != nil {
+		return nil, err
+	}
+	if len(body.Data.Children) == 0 {
+		return nil, errors.New("no children in reddit")
+	}
+	dat := body.Data.Children[0].Data
+	return dat.ToMap(), nil
 }
 
 func (p *RedditPostSource) GetType() SourceType {
@@ -65,7 +90,7 @@ func redditRequest(params *request.Params, payload interface{}, body interface{}
 	return request.Request(params, payload, body)
 }
 
-func (p *RedditCommentSource) GetMeta() (interface{}, error) {
+func (p *RedditCommentSource) GetMeta() (FlatMap, error) {
 	var body RedditCommentInfoResponse
 	params := request.Params{
 		Url: "https://api.reddit.com/api/info?id=t1_" + p.ID,
@@ -77,31 +102,37 @@ func (p *RedditCommentSource) GetMeta() (interface{}, error) {
 		return nil, errors.New("no children in reddit")
 	}
 	dat := body.Data.Children[0].Data
-	return dat, nil
+	return dat.ToMap(), nil
 }
 
 func (p *RedditCommentSource) GetType() SourceType {
 	return STRedditComment
 }
 
-func IsRedditSource(u *url.URL) bool {
+func IsRedditSource(urlS string) bool {
+	u, _ := url.Parse(urlS)
 	host := strings.ToLower(u.Hostname())
-	if strings.HasSuffix(host, "reddit.com") {
-		return true
+	if !strings.HasSuffix(host, "reddit.com") {
+		return false
 	}
-	return false
-}
-
-func ParseRedditSourceURL(urlS string) (Source, error) {
-	r, err := regexp.Compile("\\/comments\\/([a-zA-Z0-9]+)\\/?[[a-zA-Z0-9\\_]+?\\/([a-zA-Z0-9]+)?")
+	r, err := regexp.Compile(redditUrlRegexp)
 	if err != nil {
-		panic(err)
+		return false
 	}
 	result := r.FindStringSubmatch(urlS)
 
 	if len(result) < 3 {
-		return NewDefaultSource(urlS), nil
+		return false
 	}
+	return true
+}
+
+func ParseRedditSourceURL(urlS string) (Source, error) {
+	r, err := regexp.Compile(redditUrlRegexp)
+	if err != nil {
+		return nil, err
+	}
+	result := r.FindStringSubmatch(urlS)
 
 	if result[2] == "" {
 		return &RedditPostSource{

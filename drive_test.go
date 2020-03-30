@@ -9,10 +9,36 @@ import (
 	"github.com/charityhonor/ch-api/pkg/fixtures"
 )
 
+func TestDriveSource(t *testing.T) {
+	db := GetTestDb()
+	tx, err := db.Beginx()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	drive, err := CreatedDriveBySourceUrl(tx, "https://np.reddit.com/r/pathofexile/comments/c6oy9e/to_everyone_that_feels_bored_by_the_game_or/esai27c/?context=3")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	d, err := GetDriveByUri(tx, drive.Uri)
+	if err != nil {
+		t.Error(err)
+	}
+
+	meta := d.SourceMeta
+	if v, ok := meta["subreddit"]; !ok {
+		t.Error("no subreddit in meta")
+	} else if v != "pathofexile" {
+		t.Errorf("Expected subreddit pathofexile but found %s", v)
+	}
+
+	tx.Rollback()
+}
+
 func TestDriveInsert(t *testing.T) {
 	db := GetTestDb()
 	tx, err := db.Beginx()
-
 	if err != nil {
 		t.Fatal(err)
 	}

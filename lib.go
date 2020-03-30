@@ -1,14 +1,67 @@
 package charityhonor
 
 import (
+	"database/sql/driver"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
+	"reflect"
 
 	"github.com/lib/pq"
 )
 
 type M map[string]interface{}
+
+type FlatMap map[string]interface{}
+
+func (p FlatMap) Equal(b FlatMap) bool {
+	for k, v := range p {
+		e, ok := b[k]
+		if !ok {
+			return false
+		}
+
+		if !reflect.DeepEqual(e, v) {
+			return false
+		}
+	}
+	return true
+}
+
+func (p FlatMap) Value() (driver.Value, error) {
+	j, err := json.Marshal(p)
+	return j, err
+}
+
+func (p *FlatMap) Scan(src interface{}) error {
+	if src == nil {
+		return nil
+	}
+
+	source, ok := src.([]byte)
+	if !ok {
+		return errors.New("Type assertion .([]byte) failed.")
+	}
+
+	var i interface{}
+	err := json.Unmarshal(source, &i)
+	if err != nil {
+		return err
+	}
+
+	// Nothing to do if nil
+	if i == nil {
+		return nil
+	}
+
+	*p, ok = i.(map[string]interface{})
+	if !ok {
+		return errors.New("Type assertion .(map[string]interface{}) failed.")
+	}
+
+	return nil
+}
 
 var (
 	ErrAlreadyInserted = errors.New("That item has already been inserted into the db")
