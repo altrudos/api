@@ -12,10 +12,18 @@ import (
 var redditUrlRegexp = "\\/comments\\/([a-zA-Z0-9]+)\\/?[[a-zA-Z0-9\\_]+?\\/([a-zA-Z0-9]+)?"
 
 type RedditPostInfo struct {
-	Subreddit string `json:"subreddit"`
+	RedditThing
+	Title string `json:"title"`
 }
 
 type RedditCommentInfo struct {
+	RedditThing
+}
+
+// Comment or Post
+type RedditThing struct {
+	Author    string `json:"author"`
+	Body      string `json:"body"`
 	Subreddit string `json:"subreddit"`
 }
 
