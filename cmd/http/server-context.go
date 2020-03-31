@@ -5,22 +5,15 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"net/http"
-	"net/url"
+
+	"github.com/cyc-ttn/gorouter"
 
 	. "github.com/charityhonor/ch-api"
 )
 
 type RouteContext struct {
+	gorouter.RouteContext
 	*Services
-	W http.ResponseWriter
-	R *http.Request
-
-	Method string
-	Path   string
-	UserId string // LoggedOn User
-	Params map[string]string
-	Query  url.Values
 }
 
 func (c *RouteContext) Status(status int) {

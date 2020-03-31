@@ -2,8 +2,11 @@ package main
 
 import (
 	"flag"
+	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/cyc-ttn/gorouter"
 
 	. "github.com/charityhonor/ch-api"
 )
@@ -11,7 +14,7 @@ import (
 type Server struct {
 	Port int
 	S    *Services
-	R    *RouterNode
+	R    *gorouter.RouterNode
 }
 
 func (s *Server) ParseFlags() error {
@@ -28,9 +31,9 @@ func (s *Server) ParseFlags() error {
 	return nil
 }
 
-func (s *Server) AddRoutes(rs ...[]*Route) error {
+func (s *Server) AddRoutes(rs ...[]*gorouter.Route) error {
 	if s.R == nil {
-		s.R = NewRouter()
+		s.R = gorouter.NewRouter()
 	}
 	for _, rr := range rs {
 		for _, r := range rr {
@@ -43,6 +46,7 @@ func (s *Server) AddRoutes(rs ...[]*Route) error {
 }
 
 func (s *Server) Run() error {
+	log.Printf("Starting server on port %d", s.Port)
 	return http.ListenAndServe(":"+strconv.Itoa(s.Port), s)
 }
 
@@ -53,16 +57,15 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
 	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 
-	ctx := &RouteContext{
-		Services: s.S,
-		W:        w,
-		R:        r,
-		Method:   r.Method,
-		Path:     r.URL.Path,
-		Query:    r.URL.Query(),
+	ctx := &gorouter.RouteContext{
+		W:      w,
+		R:      r,
+		Method: r.Method,
+		Path:   r.URL.Path,
+		Query:  r.URL.Query(),
 	}
 	route, err := s.R.Match(r.Method, r.URL.Path, ctx)
-	if err == ErrPathNotFound || route == nil {
+	if err == gorouter.ErrPathNotFound || route == nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
@@ -70,5 +73,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	route.HandlerFunc(ctx)
+	route.HandlerFunc(&RouteContext{
+		Services:     s.S,
+		RouteContext: *ctx,
+	})
 }
