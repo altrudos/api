@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/cyc-ttn/gorouter"
 	"github.com/jmoiron/sqlx"
 
 	. "github.com/charityhonor/ch-api"
@@ -11,7 +12,7 @@ var (
 	GetCharityRoute   = NewGET("/charity/:id", getById("id", "Charity", getCharity))
 )
 
-var CharityRoutes = []*Route{
+var CharityRoutes = []*gorouter.Route{
 	GetCharitiesRoute,
 	GetCharityRoute,
 }

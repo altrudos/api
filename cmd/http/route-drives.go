@@ -1,12 +1,13 @@
 package main
 
 import (
+	"github.com/cyc-ttn/gorouter"
 	"github.com/jmoiron/sqlx"
 
 	. "github.com/charityhonor/ch-api"
 )
 
-var DriveRoutes = []*Route{
+var DriveRoutes = []*gorouter.Route{
 	NewGET("/drives", getDrives),
 	NewGET("/drive/:id", getById("id", "Drive", getDrive)),
 //	NewAuthedPOST("/drive", createDrive),
