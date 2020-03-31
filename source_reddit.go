@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/monstercat/request"
+	"github.com/monstercat/golib/request"
 )
 
 var redditUrlRegexp = "\\/comments\\/([a-zA-Z0-9]+)\\/?[[a-zA-Z0-9\\_]+?\\/([a-zA-Z0-9]+)?"
