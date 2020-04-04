@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/Masterminds/squirrel"
 	"github.com/monstercat/golib/db"
 	. "github.com/monstercat/pgnull"
 
@@ -28,6 +29,9 @@ type Charity struct {
 	FinalAmountMax        int      `db:"final_amount_max" setmap:"-"`
 	DonorAmountTotal      int      `db:"donor_amount_total" setmap:"-"`
 	DonorAmountMax        int      `db:"donor_amount_max" setmap:"-"`
+
+	// Filled in afterwards
+	Top10Donations []*Donation `db:"-" setmap:"-"`
 }
 
 var (
@@ -76,6 +80,19 @@ func (c *Charity) Insert(ext sqlx.Ext) error {
 		Scan(&c.Id)
 
 	return ConvertCharityError(err)
+}
+
+func GetCharityTop10Donations(db sqlx.Queryer, cId string) ([]*Donation, error) {
+	var xs []*Donation
+	cond := &Cond{
+		Where:    squirrel.Eq{"charity_id": cId},
+		OrderBys: []string{"-final_amount"},
+		Limit:    10,
+	}
+	if err := SelectForStruct(db, &xs, TableDonations, cond); err != nil {
+		return nil, err
+	}
+	return xs, nil
 }
 
 func GetCharityById(tx sqlx.Queryer, id string) (*Charity, error) {

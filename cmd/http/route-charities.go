@@ -17,14 +17,27 @@ var CharityRoutes = []*gorouter.Route{
 	GetCharityRoute,
 }
 
+var CharityColMap = map[string]string{
+	"total": "final_amount_total",
+	"max": "final_amount_max",
+}
+
 func getCharities(c *RouteContext) {
 	cond := GetDefaultCondFromQuery(c.Query)
-	//TODO: add search params here into cond
+	cond.OrderBys = GetSortFromQueryWithDefault(c.Query, CharityColMap, []string{"-total"})
 
 	var xs []*Charity
 	defaultGetAll(c, "Charities", ViewCharities, &xs, cond)
 }
 
 func getCharity(db sqlx.Queryer, id string) (interface{}, error) {
-	return GetCharityById(db, id)
+	charity, err := GetCharityById(db, id)
+	if err != nil {
+		return nil, err
+	}
+	charity.Top10Donations, err = GetCharityTop10Donations(db, id)
+	if err != nil {
+		return nil, err
+	}
+	return charity, nil
 }

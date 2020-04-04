@@ -26,7 +26,7 @@ var (
 )
 
 var (
-	TABLE_DONATIONS = "donations"
+	TableDonations = "donations"
 )
 
 var (
@@ -43,12 +43,12 @@ var (
 )
 
 var (
-	DonationInsertBuilder = QueryBuilder.Insert(TABLE_DONATIONS)
-	DonationUpdateBuilder = QueryBuilder.Update(TABLE_DONATIONS)
+	DonationInsertBuilder = QueryBuilder.Insert(TableDonations)
+	DonationUpdateBuilder = QueryBuilder.Update(TableDonations)
 )
 
 var (
-	DONATION_COLUMNS = map[string]string{
+	DonationColumns = map[string]string{
 		"Id":                "id",
 		"CharityId":         "charity_id",
 		"Created":           "created",
@@ -109,8 +109,8 @@ type DonationOperators struct {
 
 func GetDonationByField(tx sqlx.Queryer, field string, val interface{}) (*Donation, error) {
 	query, args, err := QueryBuilder.
-		Select(GetColumns(DONATION_COLUMNS)...).
-		From(TABLE_DONATIONS).Where(field+"=?", val).
+		Select(GetColumns(DonationColumns)...).
+		From(TableDonations).Where(field+"=?", val).
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -173,8 +173,8 @@ func QueryDonations(q sqlx.Queryer, query *squirrel.SelectBuilder) ([]*Donation,
 
 func GetDonations(q sqlx.Queryer, ops *DonationOperators) ([]*Donation, error) {
 	query := QueryBuilder.
-		Select(GetColumns(DONATION_COLUMNS)...).
-		From(TABLE_DONATIONS)
+		Select(GetColumns(DonationColumns)...).
+		From(TableDonations)
 
 	if len(ops.Statuses) > 0 {
 		query = query.Where("status = ANY (?)", StatusesPQStringArray(ops.Statuses))
