@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/Masterminds/squirrel"
+	"github.com/lib/pq"
 	"github.com/monstercat/golib/db"
 	. "github.com/monstercat/pgnull"
 
@@ -19,6 +20,7 @@ type Charity struct {
 	JustGivingCharityId int    `db:"jg_charity_id"`
 	Name                string `db:"name"`
 	LogoUrl             string `db:"logo_url"`
+	WebsiteUrl          string `db:"website_url"`
 	Summary             string `db:"summary"`
 
 	// From View
@@ -35,8 +37,8 @@ type Charity struct {
 }
 
 var (
-	TableCharities = "charities"
-	ViewCharities  = "charities_view"
+	TableCharities        = "charities"
+	ViewCharities         = "charities_view"
 	ViewFeaturedCharities = "featured_charities_view"
 )
 
@@ -120,6 +122,18 @@ func GetCharityByName(tx sqlx.Queryer, name string) (*Charity, error) {
 	var d Charity
 	err = sqlx.Get(tx, &d, query, args...)
 	return &d, err
+}
+
+func GetCharities(db sqlx.Queryer, cond *Cond) (xs []*Charity,err error) {
+	err = SelectForStruct(db, &xs, ViewCharities, cond)
+	return
+}
+
+func GetCharitiesByJGId(db sqlx.Queryer, ids pq.Int64Array) ([]*Charity, error) {
+	cond := &Cond{
+		Where: squirrel.Expr("jg_charity_id=ANY(?)", ids),
+	}
+	return GetCharities(db, cond)
 }
 
 func ConvertJGCharity(jgc *justgiving.Charity) *Charity {

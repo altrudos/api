@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 )
 
 var (
@@ -47,13 +48,22 @@ func ConvertSearchResultsToCharities(genericResults []*SearchResult) ([]*Charity
 }
 
 func (jg *JustGiving) SearchCharities(search string) (*CharitySearchResponse, error) {
+	return jg.SearchCharitiesWithLimit(search, -1)
+}
+
+func (jg *JustGiving) SearchCharitiesWithLimit(search string, limit int) (*CharitySearchResponse, error) {
+	qry := url.Values{
+		"q": []string{search},
+		"i": []string{"Charity"},
+	}
+	if limit > 0 {
+		qry["limit"] = []string{strconv.Itoa(limit)}
+	}
+
 	params := &Params{
 		Path:   "v1/onesearch",
 		Method: http.MethodGet,
-		Query: url.Values{
-			"q": []string{search},
-			"i": []string{"Charity"},
-		},
+		Query: qry,
 		Debug: jg.Debug,
 	}
 
@@ -82,3 +92,4 @@ func (jg *JustGiving) SearchCharities(search string) (*CharitySearchResponse, er
 
 	return charityResult, nil
 }
+

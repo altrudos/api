@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS charities
     id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name          TEXT NOT NULL    DEFAULT '',
     logo_url      TEXT NOT NULL    DEFAULT '',
+    website_url   TEXT NOT NULL    DEFAULT '',
     description   TEXT NOT NULL    DEFAULT '',
     summary       TEXT NOT NULL    DEFAULT '',
     jg_charity_id BIGINT,
@@ -58,8 +59,8 @@ CREATE INDEX donation_created ON donations (created);
 CREATE TABLE IF NOT EXISTS search_cache
 (
     term    TEXT UNIQUE NOT NULL DEFAULT '',
-    expires TIMESTAMPTZ
+    expires TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    ids     BIGINT[]
 );
-
 
 COMMIT;
