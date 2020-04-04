@@ -14,16 +14,30 @@ var DriveRoutes = []*gorouter.Route{
 	NewPOST("/drive", createDrive),
 }
 
+var DriveColMap = map[string]string{
+	"total": "final_amount_total",
+	"max": "final_amount_max",
+}
+
+
 func getDrives(c *RouteContext) {
 	cond := GetDefaultCondFromQuery(c.Query)
-	//TODO: add search params here into cond
+	cond.OrderBys = GetSortFromQueryWithDefault(c.Query, DriveColMap, []string{"-total"})
 
 	var xs []*Drive
 	defaultGetAll(c, "Drives", ViewDrives, &xs, cond)
 }
 
 func getDrive(db sqlx.Queryer, id string) (interface{}, error) {
-	return GetDriveById(db, id)
+	drive, err := GetDriveById(db, id)
+	if err != nil {
+		return nil, err
+	}
+	drive.Top10Donations, err = GetDriveTop10Donations(db, id)
+	if err != nil {
+		return nil, err
+	}
+	return drive, nil
 }
 
 func createDrive(c *RouteContext) {

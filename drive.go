@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"strings"
 	"time"
+
 	"github.com/Masterminds/squirrel"
 
 	"github.com/monstercat/golib/db"
@@ -23,9 +24,9 @@ var (
 )
 
 type Drive struct {
-	Amount    int
-	Created   time.Time
-	Id        string  `setmap:"omitinsert"`
+	Amount     int
+	Created    time.Time
+	Id         string     `setmap:"omitinsert"`
 	Source     Source     `db:"-"`
 	SourceUrl  string     `db:"source_url"`
 	SourceKey  string     `db:"source_key"`
@@ -41,6 +42,9 @@ type Drive struct {
 	FinalAmountMax        int      `db:"final_amount_max" setmap:"-"`
 	DonorAmountTotal      int      `db:"donor_amount_total" setmap:"-"`
 	DonorAmountMax        int      `db:"donor_amount_max" setmap:"-"`
+
+	// Filled in afterwards
+	Top10Donations []*Donation `db:"-" setmap:"-"`
 }
 
 func GetDrive(db sqlx.Queryer, where interface{}) (*Drive, error) {
@@ -64,7 +68,19 @@ func GetDriveByUri(q sqlx.Queryer, uri string) (*Drive, error) {
 
 func GetDriveById(q sqlx.Queryer, id string) (*Drive, error) {
 	return GetDriveByField(q, "id", id)
+}
 
+func GetDriveTop10Donations(db sqlx.Queryer, cId string) ([]*Donation, error) {
+	var xs []*Donation
+	cond := &Cond{
+		Where:    squirrel.Eq{"donor_amount": cId},
+		OrderBys: []string{"-final_amount"},
+		Limit:    10,
+	}
+	if err := SelectForStruct(db, &xs, TableDonations, cond); err != nil {
+		return nil, err
+	}
+	return xs, nil
 }
 
 func GetOrCreateDriveBySourceUrl(ext sqlx.Ext, url string) (*Drive, error) {
@@ -98,7 +114,7 @@ func GetDriveBySourceUrl(q sqlx.Queryer, url string) (*Drive, error) {
 func GetDriveBySource(q sqlx.Queryer, source Source) (*Drive, error) {
 	eq := squirrel.Eq{
 		"source_type": source.GetType(),
-		"source_key": source.GetKey(),
+		"source_key":  source.GetKey(),
 	}
 	return GetDrive(q, eq)
 }
