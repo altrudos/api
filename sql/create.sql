@@ -21,11 +21,12 @@ CREATE UNIQUE INDEX drives_source ON drives (source_type, source_key);
 CREATE TABLE IF NOT EXISTS charities
 (
     id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    name          TEXT NOT NULL DEFAULT '',
-    logo_url      TEXT NOT NULL DEFAULT '',
-    description   TEXT NOT NULL DEFAULT '',
-    summary       TEXT NOT NULL DEFAULT '',
-    jg_charity_id BIGINT
+    name          TEXT NOT NULL    DEFAULT '',
+    logo_url      TEXT NOT NULL    DEFAULT '',
+    description   TEXT NOT NULL    DEFAULT '',
+    summary       TEXT NOT NULL    DEFAULT '',
+    jg_charity_id BIGINT,
+    feature_score INT  NOT NULL    DEFAULT 0
 );
 CREATE UNIQUE INDEX charities_jg_charity_id_unique ON charities (jg_charity_id);
 
@@ -53,5 +54,12 @@ CREATE INDEX donation_drive_id ON donations (drive_id);
 CREATE INDEX donation_donor_amount ON donations (donor_amount);
 CREATE INDEX donation_final_amount ON donations (final_amount);
 CREATE INDEX donation_created ON donations (created);
+
+CREATE TABLE IF NOT EXISTS search_cache
+(
+    term    TEXT UNIQUE NOT NULL DEFAULT '',
+    expires TIMESTAMPTZ
+);
+
 
 COMMIT;

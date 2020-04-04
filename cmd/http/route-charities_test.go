@@ -12,7 +12,7 @@ const (
 )
 
 func TestGetCharities(t *testing.T) {
-	ts, _ := MustGetTestServer(GetCharitiesRoute)
+	ts, _ := MustGetTestServer(GetFeaturedCharitiesRoute)
 
 	resp, err := CallJson(ts, http.MethodGet, "/charities", nil)
 	if err != nil {

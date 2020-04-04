@@ -37,6 +37,7 @@ type Charity struct {
 var (
 	TableCharities = "charities"
 	ViewCharities  = "charities_view"
+	ViewFeaturedCharities = "featured_charities_view"
 )
 
 var (
