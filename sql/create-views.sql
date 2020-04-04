@@ -69,3 +69,7 @@ SELECT charities.*,
        sums.most_recent_time
 FROM charities
          LEFT JOIN sums ON sums.charity_id = charities.id;
+
+DROP VIEW IF EXISTS featured_charities_view;
+CREATE VIEW featured_charities_view AS
+SELECT * FROM charities_view WHERE feature_score > 0;

@@ -8,26 +8,31 @@ import (
 )
 
 var (
-	GetCharitiesRoute = NewGET("/charities", getCharities)
-	GetCharityRoute   = NewGET("/charity/:id", getById("id", "Charity", getCharity))
+	GetCharitiesRoute         = NewGET("/charities", getCharities)
+	GetFeaturedCharitiesRoute = NewGET("/charities/featured", getFeaturedCharities)
+	GetCharityRoute           = NewGET("/charity/:id", getById("id", "Charity", getCharity))
 )
 
 var CharityRoutes = []*gorouter.Route{
-	GetCharitiesRoute,
+	GetFeaturedCharitiesRoute,
 	GetCharityRoute,
 }
 
 var CharityColMap = map[string]string{
 	"total": "final_amount_total",
-	"max": "final_amount_max",
+	"max":   "final_amount_max",
 }
 
 func getCharities(c *RouteContext) {
+}
+
+func getFeaturedCharities(c *RouteContext) {
 	cond := GetDefaultCondFromQuery(c.Query)
 	cond.OrderBys = GetSortFromQueryWithDefault(c.Query, CharityColMap, []string{"-total"})
+	cond.OrderBys = append(cond.OrderBys, "feature_score DESC")
 
 	var xs []*Charity
-	defaultGetAll(c, "Charities", ViewCharities, &xs, cond)
+	defaultGetAll(c, "Charities", ViewFeaturedCharities, &xs, cond)
 }
 
 func getCharity(db sqlx.Queryer, id string) (interface{}, error) {
