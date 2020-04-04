@@ -25,5 +25,3 @@ VALUES ('b17f0a2d-8de6-4009-8efa-9aca898338c3', '3656cf1d-8826-404c-8f85-77f3e1f
        ('4f6241f4-903f-459b-bf02-fd14c825d8d8', '3656cf1d-8826-404c-8f85-77f3e1f50464',
         '9d0b23cd-657b-4cc4-8258-a8cabb1f6847', 1400, 'USD', 1332, 'ch-1234567894', '', 'Accepted', NOW(),
         '2019-01-01');
-
-UPDATE donations SET final_amount = donor_amount + 100;
