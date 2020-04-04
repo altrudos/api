@@ -163,7 +163,7 @@ func (d *Drive) GenerateDonation() *Donation {
 
 func (d *Drive) GetDonationQueryBuilder() squirrel.SelectBuilder {
 	return QueryBuilder.Select(dbUtil.GetColumnsList(&Donation{}, "")...).
-		From(TABLE_DONATIONS).
+		From(TableDonations).
 		Where("drive_id=?", d.Id)
 }
 

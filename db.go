@@ -77,10 +77,14 @@ func (c *Cond) DefaultOrderBys(orders ...string) {
 	}
 }
 
-func (c *Cond) ApplyWithoutLimits(qry *squirrel.SelectBuilder) {
+func (c *Cond) ApplyWhere(qry *squirrel.SelectBuilder) {
 	if c.Where != nil {
 		*qry = qry.Where(c.Where)
 	}
+}
+
+func (c *Cond) ApplyWithoutLimits(qry *squirrel.SelectBuilder) {
+	c.ApplyWhere(qry)
 	if len(c.OrderBys) > 0 {
 		*qry = qry.OrderBy(c.OrderBys...)
 	}
@@ -100,7 +104,8 @@ func (c *Cond) Apply(qry *squirrel.SelectBuilder) {
 }
 
 func SelectForStruct(db sqlx.Queryer, slice interface{}, table string, cond *Cond) error {
-	qry := QueryBuilder.Select("*").From(table)
+	cols := dbUtil.GetColumnsList(slice, "")
+	qry := QueryBuilder.Select(cols...).From(table)
 	if cond != nil {
 		cond.Apply(&qry)
 	}
