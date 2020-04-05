@@ -73,6 +73,14 @@ var ErrorMap = map[error]RouteError{
 		Code:    http.StatusNotFound,
 		Message: "Not found",
 	},
+	ErrNoCharity: {
+		Code: http.StatusBadRequest,
+		Message: "No charity provided.",
+	},
+	ErrInvalidCurrency: {
+		Code: http.StatusBadRequest,
+		Message: "Invalid currency.",
+	},
 }
 
 func (c *RouteContext) HandledError(err error) bool {
@@ -116,7 +124,7 @@ func (c *RouteContext) ConvertError(err error) RouteError {
 		Method:   c.Method,
 		Path:     c.Path,
 		Code:     http.StatusInternalServerError,
-		Message:  "An unknown error has occurred",
+		Message:  err.Error(),
 		RawError: err,
 	}
 }

@@ -9,6 +9,10 @@ import (
 	"github.com/monstercat/golib/request"
 )
 
+var (
+	ErrRedditNoChildren = errors.New("no children in reddit")
+)
+
 var redditUrlRegexp = "\\/comments\\/([a-zA-Z0-9]+)\\/?[[a-zA-Z0-9\\_]+?\\/([a-zA-Z0-9]+)?"
 
 type RedditPostInfo struct {
@@ -78,7 +82,7 @@ func (p *RedditPostSource) GetMeta() (FlatMap, error) {
 		return nil, err
 	}
 	if len(body.Data.Children) == 0 {
-		return nil, errors.New("no children in reddit")
+		return nil, ErrRedditNoChildren
 	}
 	dat := body.Data.Children[0].Data
 	return dat.ToMap(), nil
@@ -109,7 +113,7 @@ func (p *RedditCommentSource) GetMeta() (FlatMap, error) {
 		return nil, err
 	}
 	if len(body.Data.Children) == 0 {
-		return nil, errors.New("no children in reddit")
+		return nil, ErrRedditNoChildren
 	}
 	dat := body.Data.Children[0].Data
 	return dat.ToMap(), nil

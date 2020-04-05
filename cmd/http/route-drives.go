@@ -1,11 +1,10 @@
 package main
 
 import (
+	. "github.com/charityhonor/ch-api"
 	"github.com/cyc-ttn/gorouter"
 	"github.com/jmoiron/sqlx"
 	"net/http"
-
-	. "github.com/charityhonor/ch-api"
 )
 
 var DriveRoutes = []*gorouter.Route{
@@ -24,6 +23,7 @@ var DriveRoutes = []*gorouter.Route{
 		if c.HandledError(err) {
 			return
 		}
+
 		if err := nd.Process(tx); c.HandledError(err) {
 			tx.Rollback()
 			return

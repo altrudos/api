@@ -66,6 +66,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	route, err := s.R.Match(r.Method, r.URL.Path, ctx)
 	if err == gorouter.ErrPathNotFound || route == nil {
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
