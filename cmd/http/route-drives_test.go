@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/charityhonor/ch-api"
+	"github.com/charityhonor/ch-api/pkg/fixtures"
 	"net/http"
 	"testing"
 
@@ -64,30 +66,105 @@ func TestCreateDrive(t *testing.T) {
 	type test struct {
 		Payload interface{}
 		ExpectedM *expectm.ExpectedM
-		ExpecttedStatus int
+		ExpectedStatus int
 	}
 
 	tests := []test{
 		{
 			Payload: nil,
+			ExpectedStatus:500,
 			ExpectedM: &expectm.ExpectedM{
-				"RawError": ErrInvalidSourceUrl,
+				"RawError": charityhonor.ErrSourceInvalidURL.Error(),
 			},
+		},
+		{
+			Payload: charityhonor.FlatMap{
+				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
+			},
+			ExpectedStatus:500,
+			ExpectedM: &expectm.ExpectedM{
+				"RawError": charityhonor.ErrInvalidAmount.Error(),
+			},
+		},
+		{
+			Payload: charityhonor.FlatMap{
+				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
+				"Amount": "-100.50",
+			},
+			ExpectedStatus:500,
+			ExpectedM: &expectm.ExpectedM{
+				"RawError": charityhonor.ErrNegativeAmount.Error(),
+			},
+		},
+		{
+			Payload: charityhonor.FlatMap{
+				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
+				"Amount": "100.50",
+			},
+			ExpectedStatus:500,
+			ExpectedM: &expectm.ExpectedM{
+				"RawError": charityhonor.ErrNoCharity.Error(),
+			},
+		},
+		{
+			Payload: charityhonor.FlatMap{
+				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
+				"CharityId": fixtures.CharityId1,
+				"Amount": "100.50",
+			},
+			ExpectedStatus:500,
+			ExpectedM: &expectm.ExpectedM{
+				"RawError": charityhonor.ErrInvalidCurrency.Error(),
+			},
+		},
+		{
+			Payload: charityhonor.FlatMap{
+				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
+				"CharityId": fixtures.CharityId1,
+				"Amount": "100.50",
+				"Currency": "fjdksalfjdsla",
+			},
+			ExpectedStatus:500,
+			ExpectedM: &expectm.ExpectedM{
+				"RawError": charityhonor.ErrInvalidCurrency.Error(),
+			},
+		},
+		{
+			Payload: charityhonor.FlatMap{
+				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
+				"CharityId": fixtures.CharityId1,
+				"Amount": "100.50",
+				"Currency": "eur",
+			},
+			ExpectedStatus:http.StatusOK,
 		},
 	}
 
-	resp, err := CallJson(ts, http.MethodPost, "/drive", nil)
+	for i, test := range tests {
+		resp, err := CallJson(ts, http.MethodPost, "/drive", test.Payload)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if resp.StatusCode != test.ExpectedStatus {
+			t.Errorf("[%d] Status should be %d but got %d", i, test.ExpectedStatus, resp.StatusCode)
+		}
+
+		if test.ExpectedM != nil {
+			if err := CheckResponseBody(resp.Body, test.ExpectedM); err != nil {
+				t.Errorf("[%d] %s", i, err)
+			}
+		}
+	}
+
+	// Cleanup
+	db := charityhonor.GetTestDb()
+	_, err := db.Exec("DELETE FROM " + charityhonor.TABLE_DONATIONS + " WHERE donor_amount = 10050 AND donor_currency_code = 'EUR'")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if resp.StatusCode != http.StatusOK {
-		t.Fatal("Should be status ok")
-	}
 
-	if err := CheckResponseBody(resp.Body, &expectm.ExpectedM{
-		"Drive.Id": DriveId,
-		"Drive.Uri": "PrettyPinkMoon",
-	}); err != nil {
+	_, err = db.Exec("DELETE FROM " + charityhonor.TableDrives + " WHERE source_key = $1", "fmgtyqq")
+	if err != nil {
 		t.Fatal(err)
 	}
 }

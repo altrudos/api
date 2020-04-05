@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/cyc-ttn/gorouter"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -18,10 +19,10 @@ var (
 	TestConfigPath = os.Getenv("TESTCONFIG")
 )
 
-func MustGetTestServer(routes ... *Route) (*httptest.Server, *Services) {
+func MustGetTestServer(routes ... *gorouter.Route) (*httptest.Server, *Services) {
 	s := &Server{
 		S: MustGetTestServices(),
-		R: NewRouter(),
+		R: gorouter.NewRouter(),
 	}
 	if err := s.AddRoutes(routes); err != nil {
 		panic(err)
