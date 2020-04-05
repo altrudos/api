@@ -76,7 +76,7 @@ func (p *RedditPostSource) GetKey() string {
 func (p *RedditPostSource) GetMeta() (FlatMap, error) {
 	var body RedditPostInfoResponse
 	params := request.Params{
-		Url: "https://api.reddit.com/api/info?id=t1_" + p.ID,
+		Url: "https://api.reddit.com/api/info?id=t3_" + p.ID,
 	}
 	if err := redditRequest(&params, nil, &body); err != nil {
 		return nil, err

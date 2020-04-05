@@ -2,13 +2,14 @@ package charityhonor
 
 import (
 	"errors"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/monstercat/pgnull"
 )
 
 var (
 	ErrDonationNotCreated = errors.New("donation on new drive not created")
-	ErrDriveNotCreated = errors.New("drive on new drive not created")
+	ErrDriveNotCreated    = errors.New("drive on new drive not created")
 )
 
 // A new drive is the result of a user submitting the New Drive form
@@ -17,12 +18,12 @@ var (
 // drive all in one
 type NewDrive struct {
 	SourceUrl string
-	Amount string
-	Currency string
+	Amount    string
+	Currency  string
 	CharityId string
-	Name string
+	Name      string
 
-	Drive *Drive
+	Drive    *Drive
 	Donation *Donation
 }
 
@@ -61,7 +62,7 @@ func (nd *NewDrive) FetchOrCreateDrive(ext sqlx.Ext) (*Drive, error) {
 	return drive, err
 }
 
-func (nd *NewDrive) CreateDonation(ext sqlx.Ext) (error) {
+func (nd *NewDrive) CreateDonation(ext sqlx.Ext) error {
 	amt, err := AmountFromString(nd.Amount)
 	if err != nil {
 		return err
@@ -70,11 +71,11 @@ func (nd *NewDrive) CreateDonation(ext sqlx.Ext) (error) {
 		return ErrDriveNotCreated
 	}
 	donation := &Donation{
-		DonorAmount: amt,
+		DonorAmount:       amt,
 		DonorCurrencyCode: nd.Currency,
-		CharityId: nd.CharityId,
-		DriveId: nd.Drive.Id,
-		Message:pgnull.NullString{"", false},
+		CharityId:         nd.CharityId,
+		DriveId:           nd.Drive.Id,
+		Message:           pgnull.NullString{"", false},
 	}
 	if err := donation.Create(ext); err != nil {
 		return err
