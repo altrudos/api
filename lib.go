@@ -7,9 +7,20 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strings"
 
 	"github.com/lib/pq"
 )
+
+var (
+	ErrInvalidCurrency = errors.New("invalid currency")
+)
+
+var ValidCurrencies = map[string]string{
+	"USD": "USD",
+	"CAD": "CAD",
+	"EUR": "EUR",
+}
 
 type M map[string]interface{}
 
@@ -137,4 +148,13 @@ func ErrIsPqConstraint(err error, constraint string) bool {
 	}
 
 	return false
+}
+
+func ParseCurrency(curr string) (string, error) {
+	curr = strings.ToUpper(curr)
+	if val, ok := ValidCurrencies[curr]; !ok {
+		return "", ErrInvalidCurrency
+	} else {
+		return val, nil
+	}
 }

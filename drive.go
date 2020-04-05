@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"strings"
 	"time"
-
 	"github.com/Masterminds/squirrel"
 
 	"github.com/monstercat/golib/db"
@@ -47,6 +46,9 @@ type Drive struct {
 func GetDrive(db sqlx.Queryer, where interface{}) (*Drive, error) {
 	var x Drive
 	if err := GetForStruct(db, &x, ViewDrives, where); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &x, nil
@@ -63,10 +65,6 @@ func GetDriveByUri(q sqlx.Queryer, uri string) (*Drive, error) {
 func GetDriveById(q sqlx.Queryer, id string) (*Drive, error) {
 	return GetDriveByField(q, "id", id)
 
-}
-
-func GetDriveBySourceUrl(q sqlx.Queryer, url string) (*Drive, error) {
-	return GetDriveByField(q, "source_url", url)
 }
 
 func GetOrCreateDriveBySourceUrl(ext sqlx.Ext, url string) (*Drive, error) {
@@ -89,6 +87,21 @@ func GetOrCreateDriveBySourceUrl(ext sqlx.Ext, url string) (*Drive, error) {
 	return drive, nil
 }
 
+func GetDriveBySourceUrl(q sqlx.Queryer, url string) (*Drive, error) {
+	source, err := ParseSourceURL(url)
+	if err != nil {
+		return nil, err
+	}
+	return GetDriveBySource(q, source)
+}
+
+func GetDriveBySource(q sqlx.Queryer, source Source) (*Drive, error) {
+	eq := squirrel.Eq{
+		"source_type": source.GetType(),
+		"source_key": source.GetKey(),
+	}
+	return GetDrive(q, eq)
+}
 func CreatedDriveBySourceUrl(ext sqlx.Ext, url string) (*Drive, error) {
 	source, err := ParseSourceURL(url)
 	if err != nil {

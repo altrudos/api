@@ -230,3 +230,50 @@ func TestDonationChecking(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestDonationAmounts(t *testing.T) {
+	if v, err := AmountFromString("1"); err != nil {
+		t.Error(err)
+	} else if v != 100 {
+		t.Error("should be 100")
+	}
+
+	if v, err := AmountFromString("1.00"); err != nil {
+		t.Error(err)
+	} else if v != 100 {
+		t.Error("should be 100")
+	}
+
+	if v, err := AmountFromString("1.0"); err != nil {
+		t.Error(err)
+	} else if v != 100 {
+		t.Error("should be 100")
+	}
+
+	if v, err := AmountFromString("10"); err != nil {
+		t.Error(err)
+	} else if v != 1000 {
+		t.Error("should be 1000")
+	}
+
+	if v, err := AmountFromString("13.37"); err != nil {
+		t.Error(err)
+	} else if v != 1337 {
+		t.Error("should be 1337")
+	}
+
+	if v, err := AmountFromString("13.37549835743"); err != nil {
+		t.Error(err)
+	} else if v != 1337 {
+		t.Error("should be 1337")
+	}
+
+	// Some invalid ones
+	if _, err := AmountFromString("sadfsda"); err != ErrInvalidAmount {
+		t.Error("Should be invalid amount")
+	}
+
+	if _, err := AmountFromString("-10"); err != ErrNegativeAmount {
+		t.Error("Should be error about negative amount")
+	}
+}

@@ -1,3 +1,5 @@
+cmd/http/http
+.DS_Store
 /cmd/cli/cli
 api.iml
 .idea

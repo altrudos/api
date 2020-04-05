@@ -88,8 +88,20 @@ func TestDriveSelect(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if drive.SourceUrl != source {
-		t.Error("Wrong source URL returned")
+	if drive.SourceType != STRedditComment {
+		t.Error("Wrong source type")
+	}
+
+	// A similar source URL that creates the same source (reddit comment / eshxtna)
+	// should find the same drive
+	sourceSimilar := "https://www.reddit.com/r/WRONGSUBREDDIT/comments/c7wdss/for_fellow_ssf_bow_users_the_lion_card_farming/eshxtna/?context=3"
+	drive2, err := GetDriveBySourceUrl(db, sourceSimilar)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if drive2.Uri != drive.Uri {
+		t.Errorf("Wrong drive found. Expected %v but found %v", drive, drive2)
 	}
 
 	drive, err = GetDriveById(db, fixtures.DriveId)
