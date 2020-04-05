@@ -54,5 +54,40 @@ func TestGetDrive(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
+}
 
+func TestCreateDrive(t *testing.T) {
+	ts, _ := MustGetTestServer(
+		DriveRoutes...
+	)
+
+	type test struct {
+		Payload interface{}
+		ExpectedM *expectm.ExpectedM
+		ExpecttedStatus int
+	}
+
+	tests := []test{
+		{
+			Payload: nil,
+			ExpectedM: &expectm.ExpectedM{
+				"RawError": ErrInvalidSourceUrl,
+			},
+		},
+	}
+
+	resp, err := CallJson(ts, http.MethodPost, "/drive", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Fatal("Should be status ok")
+	}
+
+	if err := CheckResponseBody(resp.Body, &expectm.ExpectedM{
+		"Drive.Id": DriveId,
+		"Drive.Uri": "PrettyPinkMoon",
+	}); err != nil {
+		t.Fatal(err)
+	}
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/cyc-ttn/gorouter"
 	"github.com/jmoiron/sqlx"
+	"net/http"
 
 	. "github.com/charityhonor/ch-api"
 )
@@ -12,6 +13,21 @@ var DriveRoutes = []*gorouter.Route{
 	NewGET("/drive/:id", getById("id", "Drive", getDrive)),
 //	NewAuthedPOST("/drive", createDrive),
 //	NewAuthedPOST("/drive/:id", updateDrive),
+	NewPOST("/drive", func(c *RouteContext) {
+
+		var payload NewDrive
+		if err := c.ShouldBindJSON(&payload); c.HandledError(err) {
+			return
+		}
+
+		c.JSON(http.StatusOK, M{
+			"DonateLink": "https://www.justgiving.com",
+			"Drive": Drive{
+				Uri: GenerateUri(),
+				SourceUrl: "http://www.reddit.com",
+			},
+		})
+	}),
 }
 
 func getDrives(c *RouteContext) {

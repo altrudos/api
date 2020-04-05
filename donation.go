@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/Masterminds/squirrel"
@@ -20,6 +21,8 @@ import (
 
 var (
 	ErrMissingReferenceCode = errors.New("donation is missing reference code")
+	ErrInvalidAmount = errors.New("invalid donation amount")
+	ErrNegativeAmount = errors.New("donation amount can't be negative")
 )
 
 var (
@@ -200,9 +203,13 @@ func (d *Donation) GenerateReferenceCode(ext sqlx.Ext) error {
 }
 
 //Create does magic before insert into db
-func (d *Donation) Create(tx *sqlx.Tx) error {
-	charity, err := GetCharityById(tx, d.CharityId)
+func (d *Donation) Create(ext sqlx.Ext) error {
+	if d.CharityId == "" {
+		return ErrNoCharity
+	}
+	charity, err := GetCharityById(ext, d.CharityId)
 	if err != nil {
+		fmt.Println("err", err)
 		if err == sql.ErrNoRows {
 			return ErrCharityNotFound
 		}
@@ -210,13 +217,15 @@ func (d *Donation) Create(tx *sqlx.Tx) error {
 	}
 
 	d.Charity = charity
-
 	if d.ReferenceCode != "" {
 		return ErrAlreadyInserted
 	}
 
-	err = d.GenerateReferenceCode(tx)
+	if err := d.Validate(); err != nil {
+		return err
+	}
 
+	err = d.GenerateReferenceCode(ext)
 	if err != nil {
 		return err
 	}
@@ -225,15 +234,30 @@ func (d *Donation) Create(tx *sqlx.Tx) error {
 		d.Status = DonationPending
 	}
 
-	return d.Insert(tx)
+	return d.Insert(ext)
+}
+
+func (d *Donation) Validate() error {
+	currency, err := ParseCurrency(d.DonorCurrencyCode)
+	if err != nil {
+		return err
+	}
+	d.DonorCurrencyCode = currency
+
+	if d.DonorAmount < 0 {
+		return ErrNegativeAmount
+	}
+
+	return nil
 }
 
 //Raw insert into db
-func (d *Donation) Insert(tx *sqlx.Tx) error {
-	return DonationInsertBuilder.
+func (d *Donation) Insert(ext sqlx.Ext) error {
+	query := DonationInsertBuilder.
 		SetMap(dbUtil.SetMap(d, true)).
-		Suffix(RETURNING_ID).
-		RunWith(tx).
+		Suffix(RETURNING_ID)
+	return query.
+		RunWith(ext).
 		QueryRow().
 		Scan(&d.Id)
 }
@@ -257,6 +281,10 @@ exitUrl=http%3A%2F%2Flocalhost%3A9000%2Fconfirm%2F8930248302840%3FjgDonationId%3
 */
 func (d *Donation) GetDonationLink(jg *justgiving.JustGiving) (string, error) {
 	urls := url.Values{}
+	if d == nil {
+		panic("donation is nil")
+	}
+	fmt.Println("message", d.Message)
 	if d.Message.Valid && d.Message.String != "" {
 		urls.Set("message", d.Message.String)
 	}
@@ -337,4 +365,19 @@ func (d *Donation) CheckStatus(tx *sqlx.Tx, jg *justgiving.JustGiving) error {
 
 func ApplyApproved(q *squirrel.SelectBuilder) {
 	*q = q.Where("status=?", DonationAccepted)
+}
+
+// Takes an amount that is string from the frontend and returns it in cents
+func AmountFromString(amount string) (int, error) {
+	f, err := strconv.ParseFloat(amount, 64)
+	if err != nil {
+		return 0, ErrInvalidAmount
+	}
+
+	if f < 0 {
+		return 0, ErrNegativeAmount
+	}
+
+	// Convert dollars to cents
+	return int(f * 100), nil
 }
