@@ -209,7 +209,6 @@ func (d *Donation) Create(ext sqlx.Ext) error {
 	}
 	charity, err := GetCharityById(ext, d.CharityId)
 	if err != nil {
-		fmt.Println("err", err)
 		if err == sql.ErrNoRows {
 			return ErrCharityNotFound
 		}
@@ -283,10 +282,6 @@ func (d *Donation) GetDonationLink(jg *justgiving.JustGiving) (string, error) {
 	urls := url.Values{}
 	if d == nil {
 		panic("donation is nil")
-	}
-	fmt.Println("message", d.Message)
-	if d.Message.Valid && d.Message.String != "" {
-		urls.Set("message", d.Message.String)
 	}
 
 	if d.Message.Valid && d.Message.String != "" {

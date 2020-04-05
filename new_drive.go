@@ -1,15 +1,14 @@
 package charityhonor
 
 import (
-	"github.com/jmoiron/sqlx"
 	"errors"
-	"fmt"
+	"github.com/jmoiron/sqlx"
 	"github.com/monstercat/pgnull"
 )
 
 var (
 	ErrDonationNotCreated = errors.New("donation on new drive not created")
-	ErrDriveNotCreated = errors.New("dirve on new drive not created")
+	ErrDriveNotCreated = errors.New("drive on new drive not created")
 )
 
 // A new drive is the result of a user submitting the New Drive form
@@ -31,11 +30,9 @@ type NewDrive struct {
 // Creates the donation
 func (nd *NewDrive) Process(ext sqlx.Ext) error {
 	if _, err := nd.FetchOrCreateDrive(ext); err != nil {
-		fmt.Println("err drive", err)
 		return err
 	}
 	if err := nd.CreateDonation(ext); err != nil {
-		fmt.Println("err donation", err)
 		return err
 	}
 	return nil
@@ -58,7 +55,7 @@ func (nd *NewDrive) FetchOrCreateDrive(ext sqlx.Ext) (*Drive, error) {
 	}
 
 	drive, err = CreatedDriveBySourceUrl(ext, nd.SourceUrl)
-	if err != nil {
+	if err == nil {
 		nd.Drive = drive
 	}
 	return drive, err
@@ -68,6 +65,9 @@ func (nd *NewDrive) CreateDonation(ext sqlx.Ext) (error) {
 	amt, err := AmountFromString(nd.Amount)
 	if err != nil {
 		return err
+	}
+	if nd.Drive == nil {
+		return ErrDriveNotCreated
 	}
 	donation := &Donation{
 		DonorAmount: amt,
