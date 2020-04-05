@@ -15,17 +15,33 @@ var DriveRoutes = []*gorouter.Route{
 //	NewAuthedPOST("/drive/:id", updateDrive),
 	NewPOST("/drive", func(c *RouteContext) {
 
-		var payload NewDrive
-		if err := c.ShouldBindJSON(&payload); c.HandledError(err) {
+		var nd NewDrive
+		if err := c.ShouldBindJSON(&nd); c.HandledError(err) {
+			return
+		}
+
+		tx, err := c.Services.DB.Beginx()
+		if c.HandledError(err) {
+			return
+		}
+		if err := nd.Process(tx); c.HandledError(err) {
+			tx.Rollback()
+			return
+		}
+
+		link, err := nd.Donation.GetDonationLink(c.Services.JG)
+		if c.HandledError(err) {
+			tx.Rollback()
+			return
+		}
+
+		if err := tx.Commit(); c.HandledError(err) {
 			return
 		}
 
 		c.JSON(http.StatusOK, M{
-			"DonateLink": "https://www.justgiving.com",
-			"Drive": Drive{
-				Uri: GenerateUri(),
-				SourceUrl: "http://www.reddit.com",
-			},
+			"DonateLink": link,
+			"Drive": nd.Drive,
 		})
 	}),
 }

@@ -25,9 +25,9 @@ func TestGetCharities(t *testing.T) {
 
 	if err := CheckResponseBody(resp.Body, &expectm.ExpectedM{
 		"Charities.Data.#": 2,
-		"Drives.Total":     2,
-		"Drives.Limit":     50,
-		"Drives.Offset":    0,
+		"Charities.Total":     2,
+		"Charities.Limit":     50,
+		"Charities.Offset":    0,
 	}); err != nil {
 		t.Fatal(err)
 	}
