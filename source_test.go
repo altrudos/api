@@ -21,6 +21,9 @@ func TestParseSourceURL(t *testing.T) {
 			ExpectedType: STRedditPost,
 			ExpectedKey:  "c78dd0",
 			Error:        nil,
+			ExpectedMeta: &expectm.ExpectedM{
+				"subreddit": "vancouver",
+			},
 		},
 		{
 			URL:          "https://np.reddit.com/r/pathofexile/comments/c6oy9e/to_everyone_that_feels_bored_by_the_game_or/esai27c/?context=3",
