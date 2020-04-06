@@ -3,66 +3,55 @@ package main
 import (
 	"flag"
 	"fmt"
-	"strconv"
-	"time"
-
-	"github.com/monstercat/pgnull"
 
 	. "github.com/charityhonor/ch-api"
 )
 
 func checkDonations(name string, args []string) error {
 	var confFile string
+	var limit int
 	set := flag.NewFlagSet(name, flag.ExitOnError)
-	set.StringVar(&confFile, "config", "./config.toml", "Configuration file")
+	set.StringVar(&confFile, "config", "../../config.toml", "Configuration file")
+	set.IntVar(&limit, "limit", 100, "Max number of donations to check")
 	if err := set.Parse(args); err != nil {
 		return err
 	}
 	services := MustGetConfigServices(confFile)
 	db := services.DB
 	jg := services.JG
+	jg.Debug = false
 
 	Pls("Querying for donations to check...")
 
-	donos, err := GetDonationsToCheck(db)
+	donos, err := GetDonationsToCheck(db, limit)
 	if err != nil {
 		return err
 	}
 
 	Pls("Found %d donations to check.", len(donos))
 
-	for i, dono := range donos {
-		if i > 3 {
-			break
-		}
-
+	for _, dono := range donos {
 		Pls("-=-=-=-=-=-=-=-=-=-=-=-=-=")
-		Pls("Reference:  %s", dono.ReferenceCode)
-		Pls("Charity ID: %s", green(dono.CharityId))
-		Pls("Drive ID    %s", blue(dono.DriveId))
-		Pls("Message:    %s", maybeEmpty(dono.Message.String, lyellow))
-		Pls("Amount:     %s", lgreen(AmountToString(dono.DonorAmount)))
-		Pls("Currency:   %s", lyellow(dono.DonorCurrencyCode))
-		jdon, err := jg.GetDonationByReference(dono.ReferenceCode)
-		if err != nil {
-			fmt.Println("Error finding dono on JG", err)
-			dono.LastChecked = pgnull.NullTime{time.Now(), true}
-			if err := dono.Save(db); err != nil {
-				return err
-			}
-			continue
+		Pls("Reference:      %s", dono.ReferenceCode)
+		Pls("Charity ID:     %s", lblue(dono.CharityId))
+		Pls("Drive ID        %s", blue(dono.DriveId))
+		Pls("Message:        %s", maybeEmpty(dono.Message.String, lyellow))
+		Pls("Donor Amount:   %s", lgreen(AmountToString(dono.DonorAmount)))
+		Pls("Donor Currency: %s", lyellow(dono.DonorCurrency))
+		if err := dono.CheckStatus(db, jg); err != nil {
+			fmt.Println("err", err)
 		}
-
-		amount, err := strconv.ParseFloat(jdon.Amount, 64)
-		if err != nil {
-			return err
+		var status string
+		if dono.Status == DonationAccepted {
+			status = green(dono.Status)
+		} else if dono.Status == DonationRejected {
+			status = red(dono.Status)
+		} else {
+			status = string(dono.Status)
 		}
-
-		dono.FinalAmount = int(amount * 100)
-		dono.Status = DonationAccepted
-		if err := dono.Save(db); err != nil {
-			return err
-		}
+		Pls("Status:         %s", status)
+		Pls("Final Amount:   %s", lgreen(AmountToString(dono.FinalAmount)))
+		Pls("Final Currency: %s", lyellow(dono.FinalCurrency.String))
 	}
 
 	Pls("Done.")

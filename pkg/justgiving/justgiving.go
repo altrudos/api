@@ -156,7 +156,6 @@ func (jg *JustGiving) GetCharityById(id int) (*Charity, error) {
 	}
 
 	charity := &Charity{}
-	jg.Debug = true
 	err := jg.Request(params, nil, charity)
 	if err != nil {
 		return nil, err
@@ -177,7 +176,6 @@ func (jg *JustGiving) GetDonationByReference(reference string) (*Donation, error
 	}
 
 	var resp Response
-	params.Debug = true
 	err := jg.Request(params, nil, &resp)
 	if err != nil {
 		return nil, err

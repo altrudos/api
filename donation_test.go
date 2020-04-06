@@ -39,12 +39,12 @@ func TestDonationCRUD(t *testing.T) {
 	drive, tx, _ := getDriveForTesting()
 
 	donation := Donation{
-		DriveId:           drive.Id,
-		CharityId:         fixtures.CharityId1,
-		DonorAmount:       1234,
-		DonorCurrencyCode: "USD",
-		DonorName:         NewNullString("Vindexus"),
-		Message:           NewNullString(`I'm just trying this <strong>OUT!</strong>`),
+		DriveId:       drive.Id,
+		CharityId:     fixtures.CharityId1,
+		DonorAmount:   1234,
+		DonorCurrency: "USD",
+		DonorName:     NewNullString("Vindexus"),
+		Message:       NewNullString(`I'm just trying this <strong>OUT!</strong>`),
 	}
 
 	if err := donation.Create(tx); err != nil {
@@ -68,8 +68,8 @@ func TestDonationCRUD(t *testing.T) {
 		t.Errorf("Expected Amount '%v' but got '%v'", donation.DonorAmount, dono2.DonorAmount)
 	}
 
-	if dono2.DonorCurrencyCode != donation.DonorCurrencyCode {
-		t.Errorf("Expected CurrencyCode '%v' but got '%v'", donation.DonorCurrencyCode, dono2.DonorCurrencyCode)
+	if dono2.DonorCurrency != donation.DonorCurrency {
+		t.Errorf("Expected CurrencyCode '%v' but got '%v'", donation.DonorCurrency, dono2.DonorCurrency)
 	}
 
 	if dono2.Message != donation.Message {
@@ -99,7 +99,7 @@ func TestDonationCRUD(t *testing.T) {
 		t.Error("Get donation link should fail if missing amount")
 	}
 
-	donError.DonorCurrencyCode = "USD"
+	donError.DonorCurrency = "USD"
 	_, err = donError.GetDonationLink(jg)
 	if err == nil {
 		t.Error("Get donation link should fail if missing currency code")
@@ -160,7 +160,7 @@ func TestGetDonationsToCheck(t *testing.T) {
 	db := GetTestDb()
 
 	// Get multiple donations
-	donos, err := GetDonationsToCheck(db)
+	donos, err := GetDonationsToCheck(db, 10)
 	if err != nil {
 		t.Fatal(err)
 	}

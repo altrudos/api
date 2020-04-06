@@ -1,8 +1,9 @@
 package charityhonor
 
 import (
-	"github.com/charityhonor/ch-api/pkg/fixtures"
 	"testing"
+
+	"github.com/charityhonor/ch-api/pkg/fixtures"
 )
 
 func TestNewDrive(t *testing.T) {
@@ -16,9 +17,9 @@ func TestNewDrive(t *testing.T) {
 	}
 	nd := NewDrive{
 		SourceUrl: "https://www.reddit.com/r/ANormalDayInRussia/comments/fucm89/goodbye_anatoly/fmcx3tt/",
-		Amount: "25.75",
+		Amount:    "25.75",
 		CharityId: fixtures.CharityId1,
-		Currency: "usd",
+		Currency:  "usd",
 	}
 
 	if err := nd.Process(tx); err != nil {
@@ -33,7 +34,7 @@ func TestNewDrive(t *testing.T) {
 		t.Fatal("Donation should not be nil")
 	}
 
-	if url, err := nd.Donation.GetDonationLink(services.JG); err != nil{
+	if url, err := nd.Donation.GetDonationLink(services.JG); err != nil {
 		t.Error(err)
 	} else if url == "" {
 		t.Error("URL to donate shouldn't be blank")
@@ -43,9 +44,9 @@ func TestNewDrive(t *testing.T) {
 	// but a new donation
 	nd2 := NewDrive{
 		SourceUrl: "https://np.reddit.com/r/ANormalDayInRussia/comments/fucm89/goodbye_anatoly/fmcx3tt/?context=3",
-		Amount: "13.75",
+		Amount:    "13.75",
 		CharityId: fixtures.CharityId1,
-		Currency: "cad",
+		Currency:  "cad",
 	}
 
 	if err := nd2.Process(tx); err != nil {
@@ -60,19 +61,18 @@ func TestNewDrive(t *testing.T) {
 		t.Error("Donation amount wrong")
 	}
 
-	if nd2.Donation.DonorCurrencyCode != "CAD" {
-		t.Errorf("Code should be CAD not %s", nd2.Donation.DonorCurrencyCode)
+	if nd2.Donation.DonorCurrency != "CAD" {
+		t.Errorf("Code should be CAD not %s", nd2.Donation.DonorCurrency)
 	}
 }
-
 
 func TestNewDriveValidation(t *testing.T) {
 	services := GetTestServices()
 	nd := NewDrive{
 		SourceUrl: "https://www.reddit.com/r/ANormalDayInRussia/comments/fucm89/goodbye_anatoly/fmcx3tt/",
-		Amount: "-25.75",
+		Amount:    "-25.75",
 		CharityId: fixtures.CharityId1,
-		Currency: "usd",
+		Currency:  "usd",
 	}
 	if err := nd.Process(services.DB); err != ErrNegativeAmount {
 		t.Errorf("Wrong error expected %s but found %s", ErrNegativeAmount, err)
@@ -88,7 +88,6 @@ func TestNewDriveValidation(t *testing.T) {
 	if err := nd.Process(services.DB); err != ErrNoCharity {
 		t.Errorf("Wrong error expected %s but found %s", ErrCharityNotFound, err)
 	}
-
 
 	nd.CharityId = fixtures.DonationId1
 	if err := nd.Process(services.DB); err != ErrCharityNotFound {

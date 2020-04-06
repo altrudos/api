@@ -209,3 +209,8 @@ func (d *Drive) GetRecentDonations(q sqlx.Queryer, limit int) ([]*Donation, erro
 
 	return QueryDonations(q, query)
 }
+
+func GetDrives(db sqlx.Queryer, cond *Cond) (xs []*Drive, err error) {
+	err = SelectForStruct(db, &xs, TableDrives, cond)
+	return
+}

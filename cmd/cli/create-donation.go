@@ -80,7 +80,7 @@ func createDonation(name string, args []string) error {
 	donation.DriveId = drive.Id
 	donation.Message = pgnull.NullString{message, message != ""}
 	donation.DonorAmount = int(amount * 100)
-	donation.DonorCurrencyCode = currency
+	donation.DonorCurrency = currency
 	donation.DonorName = pgnull.NullString{donorname, donorname != ""}
 
 	spl("Mode:           %s", lyellow(jg.Mode))
@@ -88,7 +88,7 @@ func createDonation(name string, args []string) error {
 	spl("URI:            %s", blue(drive.Uri))
 	spl("Message:        %s", maybeEmpty(donation.Message.String, lyellow))
 	spl("Donor Amount:   %s", lgreen(AmountToString(donation.DonorAmount)))
-	spl("Donor Currency: %s", lyellow(donation.DonorCurrencyCode))
+	spl("Donor Currency: %s", lyellow(donation.DonorCurrency))
 
 	tx, err := db.Beginx()
 	if err != nil {
