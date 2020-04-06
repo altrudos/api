@@ -16,6 +16,8 @@ var (
 	lyellow = color.FgLightYellow.Render
 	gray    = color.Gray.Render
 	italic  = color.OpItalic.Render
+	red     = color.FgRed.Render
+	lred    = color.FgLightRed.Render
 )
 
 func spl(args ...interface{}) {

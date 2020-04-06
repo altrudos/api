@@ -71,11 +71,11 @@ func (nd *NewDrive) CreateDonation(ext sqlx.Ext) error {
 		return ErrDriveNotCreated
 	}
 	donation := &Donation{
-		DonorAmount:       amt,
-		DonorCurrencyCode: nd.Currency,
-		CharityId:         nd.CharityId,
-		DriveId:           nd.Drive.Id,
-		Message:           pgnull.NullString{"", false},
+		DonorAmount:   amt,
+		DonorCurrency: nd.Currency,
+		CharityId:     nd.CharityId,
+		DriveId:       nd.Drive.Id,
+		Message:       pgnull.NullString{"", false},
 	}
 	if err := donation.Create(ext); err != nil {
 		return err
