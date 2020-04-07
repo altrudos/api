@@ -20,6 +20,12 @@ var ValidCurrencies = map[string]string{
 	"USD": "USD",
 	"CAD": "CAD",
 	"EUR": "EUR",
+	"HKD": "HKD",
+	"SGD": "SGD",
+	"AED": "AED",
+	"AUD": "AUD",
+	"ZAR": "ZAR",
+	"GBP": "GBP",
 }
 
 type M map[string]interface{}
@@ -152,6 +158,7 @@ func ErrIsPqConstraint(err error, constraint string) bool {
 
 func ParseCurrency(curr string) (string, error) {
 	curr = strings.ToUpper(curr)
+	fmt.Println("curr", curr)
 	if val, ok := ValidCurrencies[curr]; !ok {
 		return "", ErrInvalidCurrency
 	} else {

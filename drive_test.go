@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/monstercat/pgnull"
+
 	"github.com/monstercat/golib/expectm"
 
 	"github.com/charityhonor/ch-api/pkg/fixtures"
@@ -126,6 +128,97 @@ func TestDriveSelect(t *testing.T) {
 
 	// Cleanup
 	_, err = db.Exec(`DELETE FROM drives WHERE uri = $1`, uri)
+}
+
+func TestGetTopDrives(t *testing.T) {
+	db := GetTestDb()
+	drives, err := GetTopDrives(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedTotal := 780 + 31001 + 1332
+	if len(drives) != 1 {
+		t.Fatalf("Expected 1 drives found %d", len(drives))
+	}
+
+	if drives[0].TopAmount != expectedTotal {
+		t.Errorf("Top amount should be %d not %d", expectedTotal, drives[0].TopAmount)
+	}
+
+	// Create a new drive
+	drive := &Drive{
+		Uri:        "MadeUpNewDrive",
+		SourceType: STURL,
+	}
+	if err := drive.Create(db); err != nil {
+		t.Fatal(err)
+	}
+
+	drives, err = GetTopDrives(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(drives) == 2 {
+		t.Fatal("Top drives shouldn't have increased because total of new one is still zero")
+	}
+
+	if drives[0].Uri == drive.Uri {
+		t.Error("New drive shouldn't be top")
+	}
+
+	donation := Donation{
+		CharityId:     fixtures.CharityId1,
+		Status:        DonationAccepted,
+		FinalAmount:   50,
+		DonorCurrency: "GBP",
+		DriveId:       drive.Id,
+		FinalCurrency: pgnull.NullString{"USD", true},
+	}
+	if err := donation.Create(db); err != nil {
+		t.Fatal(err)
+	}
+
+	drives, err = GetTopDrives(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if drives[0].Uri == drive.Uri {
+		t.Error("New drive still shouldn't be top")
+	}
+
+	donation2 := Donation{
+		CharityId:     fixtures.CharityId1,
+		Status:        DonationAccepted,
+		FinalAmount:   1000000,
+		DonorCurrency: "CAD",
+		DriveId:       drive.Id,
+		FinalCurrency: pgnull.NullString{"USD", true},
+	}
+	if err := donation2.Create(db); err != nil {
+		t.Fatal(err)
+	}
+
+	drives, err = GetTopDrives(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(drives) < 2 {
+		t.Fatal("Should have two drives")
+	}
+	if drives[0].Uri != drive.Uri {
+		t.Error("New drive should be top now")
+	}
+	if drives[0].TopAmount != 1000050 {
+		for _, v := range drives {
+			fmt.Println("top", v.TopAmount)
+		}
+		t.Errorf("Top amount shouldbe 100050 not %d", drives[0].TopAmount)
+	}
+
+	// Cleanup
+
 }
 
 func TestGetDriveDonations(t *testing.T) {

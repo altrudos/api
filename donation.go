@@ -238,6 +238,7 @@ func (d *Donation) Create(ext sqlx.Ext) error {
 		d.Status = DonationPending
 	}
 
+	d.Created = time.Now()
 	return d.Insert(ext)
 }
 

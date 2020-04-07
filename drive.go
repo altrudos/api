@@ -43,6 +43,10 @@ type Drive struct {
 	DonorAmountTotal      int      `db:"donor_amount_total" setmap:"-"`
 	DonorAmountMax        int      `db:"donor_amount_max" setmap:"-"`
 
+	// From sum queries
+	TopAmount    int `db:"top_amount" setmap:"-"`
+	NumDonations int `db:"num_donations" setmap:"-"`
+
 	// Filled in afterwards
 	Top10Donations []*Donation `db:"-" setmap:"-"`
 }
@@ -56,6 +60,32 @@ func GetDrive(db sqlx.Queryer, where interface{}) (*Drive, error) {
 		return nil, err
 	}
 	return &x, nil
+}
+
+/*SELECT pp.id
+     , count(kind = 'dog' OR NULL) AS alive_dogs_count
+     , count(kind = 'cat' OR NULL) AS alive_cats_count
+FROM   people pp
+LEFT   JOIN pets pt ON pt.person_id = pp.id
+                   AND pt.alive
+WHERE  <some condition to retrieve a small subset>
+GROUP  BY 1;*/
+func GetTopDrives(db sqlx.Queryer) ([]*Drive, error) {
+	qry := QueryBuilder.Select("dr.*, sq.top_amount").
+		From(`(SELECT SUM(final_amount) as top_amount, COUNT(dono.id) as num_donations, drive_id
+		FROM ` + TableDonations + ` dono
+		WHERE dono.created >= NOW() - INTERVAL '7 DAYS' 
+		AND dono.status = 'Accepted'
+		GROUP BY drive_id) sq`).
+		Join(ViewDrives + " dr ON dr.id = sq.drive_id").
+		OrderBy("top_amount DESC")
+
+	dbUtil.DebugQuery(qry)
+	var drives []*Drive
+	if err := dbUtil.Select(db, &drives, qry); err != nil {
+		return nil, err
+	}
+	return drives, nil
 }
 
 func GetDriveByField(q sqlx.Queryer, field, value string) (*Drive, error) {
@@ -146,9 +176,12 @@ func (d *Drive) Create(ext sqlx.Ext) error {
 	if d.Id != "" {
 		return ErrAlreadyInserted
 	}
-	if err := d.GenerateUri(); err != nil {
-		return err
+	if d.Uri == "" {
+		if err := d.GenerateUri(); err != nil {
+			return err
+		}
 	}
+	d.Created = time.Now()
 	return d.Insert(ext)
 }
 

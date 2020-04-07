@@ -10,15 +10,25 @@ import (
 
 var DriveRoutes = []*gorouter.Route{
 	NewGET("/drives", getDrives),
+	NewGET("/drives/top/:range", getTopDrives),
 	NewGET("/drive/:id", getById("id", "Drive", getDrive)),
 	NewPOST("/drive", createDrive),
 }
 
 var DriveColMap = map[string]string{
 	"total": "final_amount_total",
-	"max": "final_amount_max",
+	"max":   "final_amount_max",
 }
 
+func getTopDrives(c *RouteContext) {
+	drives, err := GetTopDrives(c.DB)
+	if c.HandledError(err) {
+		return
+	}
+	c.JSON(http.StatusOK, M{
+		"Drives": drives,
+	})
+}
 
 func getDrives(c *RouteContext) {
 	cond := GetDefaultCondFromQuery(c.Query)
