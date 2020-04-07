@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/charityhonor/ch-api"
-	"github.com/charityhonor/ch-api/pkg/fixtures"
 	"net/http"
 	"testing"
+
+	"github.com/charityhonor/ch-api"
+	"github.com/charityhonor/ch-api/pkg/fixtures"
 
 	"github.com/monstercat/golib/expectm"
 )
@@ -28,11 +29,33 @@ func TestGetDrives(t *testing.T) {
 	}
 
 	if err := CheckResponseBody(resp.Body, &expectm.ExpectedM{
-		"Drives.Data.#": 1,
-		"Drives.Total":  1,
-		"Drives.Limit":  50,
-		"Drives.Offset": 0,
+		"Drives.Data.#":     1,
+		"Drives.Total":      1,
+		"Drives.Limit":      50,
+		"Drives.Offset":     0,
 		"Drives.Data.0.Uri": "PrettyPinkMoon",
+	}); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestGetTopDrives(t *testing.T) {
+	ts, _ := MustGetTestServer(
+		DriveRoutes...,
+	)
+
+	resp, err := CallJson(ts, http.MethodGet, "/drives/top/week", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatal("Should be status ok")
+	}
+
+	if err := CheckResponseBody(resp.Body, &expectm.ExpectedM{
+		"Drives.#":     1,
+		"Drives.0.Uri": "PrettyPinkMoon",
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -42,7 +65,7 @@ func TestGetDrive(t *testing.T) {
 	ts, _ := MustGetTestServer(
 		NewGET("/drive/:id", getById("id", "Drive", getDrive)),
 	)
-	resp, err := CallJson(ts, http.MethodGet, "/drive/" + DriveId, nil)
+	resp, err := CallJson(ts, http.MethodGet, "/drive/"+DriveId, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,7 +74,7 @@ func TestGetDrive(t *testing.T) {
 	}
 
 	if err := CheckResponseBody(resp.Body, &expectm.ExpectedM{
-		"Drive.Id": DriveId,
+		"Drive.Id":  DriveId,
 		"Drive.Uri": "PrettyPinkMoon",
 	}); err != nil {
 		t.Fatal(err)
@@ -60,19 +83,19 @@ func TestGetDrive(t *testing.T) {
 
 func TestCreateDrive(t *testing.T) {
 	ts, _ := MustGetTestServer(
-		DriveRoutes...
+		DriveRoutes...,
 	)
 
 	type test struct {
-		Payload interface{}
-		ExpectedM *expectm.ExpectedM
+		Payload        interface{}
+		ExpectedM      *expectm.ExpectedM
 		ExpectedStatus int
 	}
 
 	tests := []test{
 		{
-			Payload: nil,
-			ExpectedStatus:500,
+			Payload:        nil,
+			ExpectedStatus: 500,
 			ExpectedM: &expectm.ExpectedM{
 				"RawError": charityhonor.ErrSourceInvalidURL.Error(),
 			},
@@ -81,7 +104,7 @@ func TestCreateDrive(t *testing.T) {
 			Payload: charityhonor.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
 			},
-			ExpectedStatus:500,
+			ExpectedStatus: 500,
 			ExpectedM: &expectm.ExpectedM{
 				"RawError": charityhonor.ErrInvalidAmount.Error(),
 			},
@@ -89,9 +112,9 @@ func TestCreateDrive(t *testing.T) {
 		{
 			Payload: charityhonor.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
-				"Amount": "-100.50",
+				"Amount":    "-100.50",
 			},
-			ExpectedStatus:500,
+			ExpectedStatus: 500,
 			ExpectedM: &expectm.ExpectedM{
 				"RawError": charityhonor.ErrNegativeAmount.Error(),
 			},
@@ -99,9 +122,9 @@ func TestCreateDrive(t *testing.T) {
 		{
 			Payload: charityhonor.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
-				"Amount": "100.50",
+				"Amount":    "100.50",
 			},
-			ExpectedStatus:500,
+			ExpectedStatus: 500,
 			ExpectedM: &expectm.ExpectedM{
 				"RawError": charityhonor.ErrNoCharity.Error(),
 			},
@@ -110,9 +133,9 @@ func TestCreateDrive(t *testing.T) {
 			Payload: charityhonor.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
 				"CharityId": fixtures.CharityId1,
-				"Amount": "100.50",
+				"Amount":    "100.50",
 			},
-			ExpectedStatus:500,
+			ExpectedStatus: 500,
 			ExpectedM: &expectm.ExpectedM{
 				"RawError": charityhonor.ErrInvalidCurrency.Error(),
 			},
@@ -121,10 +144,10 @@ func TestCreateDrive(t *testing.T) {
 			Payload: charityhonor.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
 				"CharityId": fixtures.CharityId1,
-				"Amount": "100.50",
-				"Currency": "fjdksalfjdsla",
+				"Amount":    "100.50",
+				"Currency":  "fjdksalfjdsla",
 			},
-			ExpectedStatus:500,
+			ExpectedStatus: 500,
 			ExpectedM: &expectm.ExpectedM{
 				"RawError": charityhonor.ErrInvalidCurrency.Error(),
 			},
@@ -133,10 +156,10 @@ func TestCreateDrive(t *testing.T) {
 			Payload: charityhonor.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
 				"CharityId": fixtures.CharityId1,
-				"Amount": "100.50",
-				"Currency": "eur",
+				"Amount":    "100.50",
+				"Currency":  "eur",
 			},
-			ExpectedStatus:http.StatusOK,
+			ExpectedStatus: http.StatusOK,
 		},
 	}
 
@@ -158,12 +181,12 @@ func TestCreateDrive(t *testing.T) {
 
 	// Cleanup
 	db := charityhonor.GetTestDb()
-	_, err := db.Exec("DELETE FROM " + charityhonor.TABLE_DONATIONS + " WHERE donor_amount = 10050 AND donor_currency_code = 'EUR'")
+	_, err := db.Exec("DELETE FROM " + charityhonor.TableDonations + " WHERE donor_amount = 10050 AND donor_currency_code = 'EUR'")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = db.Exec("DELETE FROM " + charityhonor.TableDrives + " WHERE source_key = $1", "fmgtyqq")
+	_, err = db.Exec("DELETE FROM "+charityhonor.TableDrives+" WHERE source_key = $1", "fmgtyqq")
 	if err != nil {
 		t.Fatal(err)
 	}
