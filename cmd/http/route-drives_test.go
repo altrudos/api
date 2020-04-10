@@ -13,7 +13,8 @@ import (
 )
 
 var (
-	DriveId = "3656cf1d-8826-404c-8f85-77f3e1f50464"
+	DriveId  = "3656cf1d-8826-404c-8f85-77f3e1f50464"
+	DriveUri = "PrettyPinkMoon"
 )
 
 func respBody(body io.Reader) string {
@@ -76,7 +77,7 @@ func TestGetDrive(t *testing.T) {
 	ts, _ := MustGetTestServer(
 		NewGET("/drive/:id", getById("id", "Drive", getDrive)),
 	)
-	resp, err := CallJson(ts, http.MethodGet, "/drive/"+DriveId, nil)
+	resp, err := CallJson(ts, http.MethodGet, "/drive/"+DriveUri, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -87,7 +88,7 @@ func TestGetDrive(t *testing.T) {
 
 	if err := CheckResponseBody(resp.Body, &expectm.ExpectedM{
 		"Drive.Id":  DriveId,
-		"Drive.Uri": "PrettyPinkMoon",
+		"Drive.Uri": DriveUri,
 	}); err != nil {
 		t.Fatal(err)
 	}
