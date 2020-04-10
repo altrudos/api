@@ -11,7 +11,7 @@ import (
 var DriveRoutes = []*gorouter.Route{
 	NewGET("/drives", getDrives),
 	NewGET("/drives/top/:range", getTopDrives),
-	NewGET("/drive/:id", getById("id", "Drive", getDrive)),
+	NewGET("/drive/:uri", getById("uri", "Drive", getDrive)),
 	NewPOST("/drive", createDrive),
 }
 
@@ -38,12 +38,12 @@ func getDrives(c *RouteContext) {
 	defaultGetAll(c, "Drives", ViewDrives, &xs, cond)
 }
 
-func getDrive(db sqlx.Queryer, id string) (interface{}, error) {
-	drive, err := GetDriveById(db, id)
+func getDrive(db sqlx.Queryer, uri string) (interface{}, error) {
+	drive, err := GetDriveByUri(db, uri)
 	if err != nil {
 		return nil, err
 	}
-	drive.Top10Donations, err = GetDriveTop10Donations(db, id)
+	drive.Top10Donations, err = GetDriveTop10Donations(db, drive.Id)
 	if err != nil {
 		return nil, err
 	}
