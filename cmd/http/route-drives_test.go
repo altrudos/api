@@ -75,7 +75,7 @@ func TestGetTopDrives(t *testing.T) {
 
 func TestGetDrive(t *testing.T) {
 	ts, _ := MustGetTestServer(
-		NewGET("/drive/:id", getById("id", "Drive", getDrive)),
+		DriveRoutes...,
 	)
 	resp, err := CallJson(ts, http.MethodGet, "/drive/"+DriveUri, nil)
 	if err != nil {
@@ -87,8 +87,10 @@ func TestGetDrive(t *testing.T) {
 	}
 
 	if err := CheckResponseBody(resp.Body, &expectm.ExpectedM{
-		"Drive.Id":  DriveId,
-		"Drive.Uri": DriveUri,
+		"Drive.Id":          DriveId,
+		"Drive.Uri":         DriveUri,
+		"RecentDonations.#": 3,
+		"TopDonations.#":    3,
 	}); err != nil {
 		t.Fatal(err)
 	}

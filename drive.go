@@ -2,7 +2,6 @@ package charityhonor
 
 import (
 	"database/sql"
-	"fmt"
 	"strings"
 	"time"
 
@@ -45,7 +44,8 @@ type Drive struct {
 	DonorAmountMax        int      `db:"donor_amount_max" setmap:"-"`
 
 	// Filled in afterwards
-	Top10Donations []*Donation `db:"-" setmap:"-"`
+	Top10Donations    []*Donation `db:"-" setmap:"-"`
+	Recent10Donations []*Donation `db:"-" setmap:"-"`
 }
 
 // For queries that include the TopAmount and NumDonations calculations
@@ -104,15 +104,33 @@ func GetDriveById(q sqlx.Queryer, id string) (*Drive, error) {
 	return GetDriveByField(q, "id", id)
 }
 
-func GetDriveTop10Donations(db sqlx.Queryer, cId string) ([]*Donation, error) {
+func GetDriveTopDonations(db sqlx.Queryer, cId string, num int) ([]*Donation, error) {
 	var xs []*Donation
 	cond := &Cond{
-		Where:    squirrel.Eq{"drive_id": cId},
+		Where: squirrel.Eq{
+			"drive_id": cId,
+			"status":   DonationAccepted,
+		},
 		OrderBys: []string{"-final_amount"},
-		Limit:    10,
+		Limit:    num,
 	}
 	if err := SelectForStruct(db, &xs, TableDonations, cond); err != nil {
-		fmt.Printf("err %s", err)
+		return nil, err
+	}
+	return xs, nil
+}
+
+func GetDriveRecentDonations(db sqlx.Queryer, cId string, num int) ([]*Donation, error) {
+	var xs []*Donation
+	cond := &Cond{
+		Where: squirrel.Eq{
+			"drive_id": cId,
+			"status":   DonationAccepted,
+		},
+		OrderBys: []string{"created DESC"},
+		Limit:    num,
+	}
+	if err := SelectForStruct(db, &xs, TableDonations, cond); err != nil {
 		return nil, err
 	}
 	return xs, nil

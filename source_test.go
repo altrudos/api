@@ -23,6 +23,7 @@ func TestParseSourceURL(t *testing.T) {
 			Error:        nil,
 			ExpectedMeta: &expectm.ExpectedM{
 				"subreddit": "vancouver",
+				"author":    "shazoocow",
 			},
 		},
 		{
