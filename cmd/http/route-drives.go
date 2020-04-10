@@ -12,6 +12,7 @@ var DriveRoutes = []*gorouter.Route{
 	NewGET("/drives/top/:range", getTopDrives),
 	NewGET("/drive/:uri", getDrive),
 	NewPOST("/drive", createDrive),
+	NewPOST("/drive/:id/donate", createDriveDonation),
 }
 
 var DriveColMap = map[string]string{
@@ -90,5 +91,40 @@ func createDrive(c *RouteContext) {
 	c.JSON(http.StatusOK, M{
 		"DonateLink": link,
 		"Drive":      nd.Drive,
+	})
+}
+
+func createDriveDonation(c *RouteContext) {
+	var submitted struct {
+		SubmittedDonation SubmittedDonation
+	}
+	if err := c.ShouldBindJSON(&submitted); c.HandledError(err) {
+		return
+	}
+	var err error
+
+	tx, err := c.Services.DB.Beginx()
+	if c.HandledError(err) {
+		return
+	}
+
+	var donation *Donation
+	if donation, err = CreateDonation(tx, c.Params["id"], &submitted.SubmittedDonation); err != nil {
+		c.HandleError(err)
+		return
+	}
+
+	link, err := donation.GetDonationLink(c.Services.JG)
+	if c.HandledError(err) {
+		tx.Rollback()
+		return
+	}
+
+	if err := tx.Commit(); c.HandledError(err) {
+		return
+	}
+
+	c.JSON(http.StatusOK, M{
+		"DonateLink": link,
 	})
 }

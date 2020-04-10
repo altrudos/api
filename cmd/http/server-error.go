@@ -93,6 +93,10 @@ var ErrorMap = map[error]RouteError{
 		Code:    http.StatusBadRequest,
 		Message: "Donation amount can't be negative.",
 	},
+	ErrNilDonation: {
+		Code:    http.StatusBadRequest,
+		Message: "No donation submitted.",
+	},
 }
 
 func (c *RouteContext) HandledError(err error) bool {

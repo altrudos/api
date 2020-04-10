@@ -121,13 +121,27 @@ func TestCreateDrive(t *testing.T) {
 			},
 			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
+				"RawError": charityhonor.ErrNilDonation.Error(),
+			},
+		},
+		{
+			Payload: charityhonor.FlatMap{
+				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
+				"SubmittedDonation": charityhonor.M{
+					"Amount": "twenty bucks",
+				},
+			},
+			ExpectedStatus: http.StatusBadRequest,
+			ExpectedM: &expectm.ExpectedM{
 				"RawError": charityhonor.ErrInvalidAmount.Error(),
 			},
 		},
 		{
 			Payload: charityhonor.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
-				"Amount":    "-100.50",
+				"SubmittedDonation": charityhonor.M{
+					"Amount": "-100.50",
+				},
 			},
 			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
@@ -137,7 +151,9 @@ func TestCreateDrive(t *testing.T) {
 		{
 			Payload: charityhonor.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
-				"Amount":    "100.50",
+				"SubmittedDonation": charityhonor.M{
+					"Amount": "100.50",
+				},
 			},
 			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
@@ -147,8 +163,10 @@ func TestCreateDrive(t *testing.T) {
 		{
 			Payload: charityhonor.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
-				"CharityId": fixtures.CharityId1,
-				"Amount":    "100.50",
+				"SubmittedDonation": charityhonor.M{
+					"CharityId": fixtures.CharityId1,
+					"Amount":    "100.50",
+				},
 			},
 			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
@@ -158,9 +176,11 @@ func TestCreateDrive(t *testing.T) {
 		{
 			Payload: charityhonor.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
-				"CharityId": fixtures.CharityId1,
-				"Amount":    "100.50",
-				"Currency":  "fjdksalfjdsla",
+				"SubmittedDonation": charityhonor.M{
+					"CharityId": fixtures.CharityId1,
+					"Amount":    "100.50",
+					"Currency":  "fjdksalfjdsla",
+				},
 			},
 			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
@@ -170,9 +190,11 @@ func TestCreateDrive(t *testing.T) {
 		{
 			Payload: charityhonor.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
-				"CharityId": fixtures.CharityId1,
-				"Amount":    "100.50",
-				"Currency":  "eur",
+				"SubmittedDonation": charityhonor.M{
+					"CharityId": fixtures.CharityId1,
+					"Amount":    "100.50",
+					"Currency":  "eur",
+				},
 			},
 			ExpectedStatus: http.StatusOK,
 		},
@@ -206,4 +228,112 @@ func TestCreateDrive(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestCreateDriveDonation(t *testing.T) {
+	ts, _ := MustGetTestServer(
+		DriveRoutes...,
+	)
+
+	type test struct {
+		Payload        interface{}
+		ExpectedM      *expectm.ExpectedM
+		ExpectedStatus int
+	}
+
+	tests := []test{
+		{
+			Payload: charityhonor.FlatMap{
+				"SubmittedDonation": charityhonor.M{
+					"Amount": "twenty bucks",
+				},
+			},
+			ExpectedStatus: http.StatusBadRequest,
+			ExpectedM: &expectm.ExpectedM{
+				"RawError": charityhonor.ErrInvalidAmount.Error(),
+			},
+		},
+		{
+			Payload: charityhonor.FlatMap{
+				"SubmittedDonation": charityhonor.M{
+					"Amount": "-100.50",
+				},
+			},
+			ExpectedStatus: http.StatusBadRequest,
+			ExpectedM: &expectm.ExpectedM{
+				"RawError": charityhonor.ErrNegativeAmount.Error(),
+			},
+		},
+		{
+			Payload: charityhonor.FlatMap{
+				"SubmittedDonation": charityhonor.M{
+					"Amount": "100.50",
+				},
+			},
+			ExpectedStatus: http.StatusBadRequest,
+			ExpectedM: &expectm.ExpectedM{
+				"RawError": charityhonor.ErrNoCharity.Error(),
+			},
+		},
+		{
+			Payload: charityhonor.FlatMap{
+				"SubmittedDonation": charityhonor.M{
+					"CharityId": fixtures.CharityId1,
+					"Amount":    "100.50",
+				},
+			},
+			ExpectedStatus: http.StatusBadRequest,
+			ExpectedM: &expectm.ExpectedM{
+				"RawError": charityhonor.ErrInvalidCurrency.Error(),
+			},
+		},
+		{
+			Payload: charityhonor.FlatMap{
+				"SubmittedDonation": charityhonor.M{
+					"CharityId": fixtures.CharityId1,
+					"Amount":    "100.50",
+					"Currency":  "fjdksalfjdsla",
+				},
+			},
+			ExpectedStatus: http.StatusBadRequest,
+			ExpectedM: &expectm.ExpectedM{
+				"RawError": charityhonor.ErrInvalidCurrency.Error(),
+			},
+		},
+		{
+			Payload: charityhonor.FlatMap{
+				"SubmittedDonation": charityhonor.M{
+					"CharityId": fixtures.CharityId1,
+					"Amount":    "100.87",
+					"Currency":  "eur",
+				},
+			},
+			ExpectedStatus: http.StatusOK,
+		},
+	}
+
+	for i, test := range tests {
+		resp, err := CallJson(ts, http.MethodPost, "/drive/"+DriveId+"/donate", test.Payload)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if resp.StatusCode != test.ExpectedStatus {
+			t.Errorf("[%d] Status should be %d but got %d", i, test.ExpectedStatus, resp.StatusCode)
+			t.Error(respBody(resp.Body))
+		}
+
+		if test.ExpectedM != nil {
+			if err := CheckResponseBody(resp.Body, test.ExpectedM); err != nil {
+				t.Errorf("[%d] %s", i, err)
+			}
+		}
+	}
+
+	// Cleanup
+	db := charityhonor.GetTestDb()
+	_, err := db.Exec("DELETE FROM " + charityhonor.TableDonations + " WHERE donor_amount = 10087 AND donor_currency = 'EUR'")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 }
