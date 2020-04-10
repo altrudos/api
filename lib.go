@@ -158,7 +158,6 @@ func ErrIsPqConstraint(err error, constraint string) bool {
 
 func ParseCurrency(curr string) (string, error) {
 	curr = strings.ToUpper(curr)
-	fmt.Println("curr", curr)
 	if val, ok := ValidCurrencies[curr]; !ok {
 		return "", ErrInvalidCurrency
 	} else {

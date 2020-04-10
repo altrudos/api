@@ -2,6 +2,7 @@ package charityhonor
 
 import (
 	"database/sql"
+	"fmt"
 	"strings"
 	"time"
 
@@ -43,12 +44,16 @@ type Drive struct {
 	DonorAmountTotal      int      `db:"donor_amount_total" setmap:"-"`
 	DonorAmountMax        int      `db:"donor_amount_max" setmap:"-"`
 
+	// Filled in afterwards
+	Top10Donations []*Donation `db:"-" setmap:"-"`
+}
+
+// For queries that include the TopAmount and NumDonations calculations
+type DriveTallied struct {
+	Drive
 	// From sum queries
 	TopAmount    int `db:"top_amount" setmap:"-"`
 	NumDonations int `db:"num_donations" setmap:"-"`
-
-	// Filled in afterwards
-	Top10Donations []*Donation `db:"-" setmap:"-"`
 }
 
 func GetDrive(db sqlx.Queryer, where interface{}) (*Drive, error) {
@@ -70,7 +75,7 @@ LEFT   JOIN pets pt ON pt.person_id = pp.id
                    AND pt.alive
 WHERE  <some condition to retrieve a small subset>
 GROUP  BY 1;*/
-func GetTopDrives(db sqlx.Queryer) ([]*Drive, error) {
+func GetTopDrives(db sqlx.Queryer) ([]*DriveTallied, error) {
 	qry := QueryBuilder.Select("dr.*, sq.top_amount").
 		From(`(SELECT SUM(final_amount) as top_amount, COUNT(dono.id) as num_donations, drive_id
 		FROM ` + TableDonations + ` dono
@@ -80,8 +85,7 @@ func GetTopDrives(db sqlx.Queryer) ([]*Drive, error) {
 		Join(ViewDrives + " dr ON dr.id = sq.drive_id").
 		OrderBy("top_amount DESC")
 
-	dbUtil.DebugQuery(qry)
-	var drives []*Drive
+	var drives []*DriveTallied
 	if err := dbUtil.Select(db, &drives, qry); err != nil {
 		return nil, err
 	}
@@ -103,11 +107,12 @@ func GetDriveById(q sqlx.Queryer, id string) (*Drive, error) {
 func GetDriveTop10Donations(db sqlx.Queryer, cId string) ([]*Donation, error) {
 	var xs []*Donation
 	cond := &Cond{
-		Where:    squirrel.Eq{"donor_amount": cId},
+		Where:    squirrel.Eq{"drive_id": cId},
 		OrderBys: []string{"-final_amount"},
 		Limit:    10,
 	}
 	if err := SelectForStruct(db, &xs, TableDonations, cond); err != nil {
+		fmt.Printf("err %s", err)
 		return nil, err
 	}
 	return xs, nil

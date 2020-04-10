@@ -216,6 +216,7 @@ func TestDonationChecking(t *testing.T) {
 
 	dono.ReferenceCode = "nonexistantcode"
 	dono.Status = DonationPending
+	dono.Created = time.Now().Add(DonationCheckExpiration * -2)
 
 	err = dono.CheckStatus(tx, jg)
 	if err != nil {
@@ -223,7 +224,7 @@ func TestDonationChecking(t *testing.T) {
 	}
 
 	if dono.Status != DonationRejected {
-		t.Error("Donation should be rejected if we can't find it in JG by reference code")
+		t.Error("Donation should be rejected if we can't find it in JG by reference code, status was", dono.Status)
 	}
 
 	if err := tx.Rollback(); err != nil {

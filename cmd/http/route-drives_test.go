@@ -1,6 +1,8 @@
 package main
 
 import (
+	"io"
+	"io/ioutil"
 	"net/http"
 	"testing"
 
@@ -13,6 +15,14 @@ import (
 var (
 	DriveId = "3656cf1d-8826-404c-8f85-77f3e1f50464"
 )
+
+func respBody(body io.Reader) string {
+	byt, err := ioutil.ReadAll(body)
+	if err != nil {
+		return err.Error()
+	}
+	return string(byt)
+}
 
 func TestGetDrives(t *testing.T) {
 	ts, _ := MustGetTestServer(
@@ -50,14 +60,15 @@ func TestGetTopDrives(t *testing.T) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		t.Fatal("Should be status ok")
+		//t.Error(respBody(resp.Body))
+		t.Error("Should be status ok but got", resp.StatusCode)
 	}
 
 	if err := CheckResponseBody(resp.Body, &expectm.ExpectedM{
 		"Drives.#":     1,
 		"Drives.0.Uri": "PrettyPinkMoon",
 	}); err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 }
 
@@ -70,7 +81,8 @@ func TestGetDrive(t *testing.T) {
 		t.Fatal(err)
 	}
 	if resp.StatusCode != http.StatusOK {
-		t.Fatal("Should be status ok")
+		t.Error(respBody(resp.Body))
+		t.Error("Should be status ok got", resp.StatusCode)
 	}
 
 	if err := CheckResponseBody(resp.Body, &expectm.ExpectedM{
@@ -95,7 +107,7 @@ func TestCreateDrive(t *testing.T) {
 	tests := []test{
 		{
 			Payload:        nil,
-			ExpectedStatus: 500,
+			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
 				"RawError": charityhonor.ErrSourceInvalidURL.Error(),
 			},
@@ -104,7 +116,7 @@ func TestCreateDrive(t *testing.T) {
 			Payload: charityhonor.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
 			},
-			ExpectedStatus: 500,
+			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
 				"RawError": charityhonor.ErrInvalidAmount.Error(),
 			},
@@ -114,7 +126,7 @@ func TestCreateDrive(t *testing.T) {
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
 				"Amount":    "-100.50",
 			},
-			ExpectedStatus: 500,
+			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
 				"RawError": charityhonor.ErrNegativeAmount.Error(),
 			},
@@ -124,7 +136,7 @@ func TestCreateDrive(t *testing.T) {
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
 				"Amount":    "100.50",
 			},
-			ExpectedStatus: 500,
+			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
 				"RawError": charityhonor.ErrNoCharity.Error(),
 			},
@@ -135,7 +147,7 @@ func TestCreateDrive(t *testing.T) {
 				"CharityId": fixtures.CharityId1,
 				"Amount":    "100.50",
 			},
-			ExpectedStatus: 500,
+			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
 				"RawError": charityhonor.ErrInvalidCurrency.Error(),
 			},
@@ -147,7 +159,7 @@ func TestCreateDrive(t *testing.T) {
 				"Amount":    "100.50",
 				"Currency":  "fjdksalfjdsla",
 			},
-			ExpectedStatus: 500,
+			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
 				"RawError": charityhonor.ErrInvalidCurrency.Error(),
 			},
@@ -170,6 +182,7 @@ func TestCreateDrive(t *testing.T) {
 		}
 		if resp.StatusCode != test.ExpectedStatus {
 			t.Errorf("[%d] Status should be %d but got %d", i, test.ExpectedStatus, resp.StatusCode)
+			t.Error(respBody(resp.Body))
 		}
 
 		if test.ExpectedM != nil {
@@ -181,7 +194,7 @@ func TestCreateDrive(t *testing.T) {
 
 	// Cleanup
 	db := charityhonor.GetTestDb()
-	_, err := db.Exec("DELETE FROM " + charityhonor.TableDonations + " WHERE donor_amount = 10050 AND donor_currency_code = 'EUR'")
+	_, err := db.Exec("DELETE FROM " + charityhonor.TableDonations + " WHERE donor_amount = 10050 AND donor_currency = 'EUR'")
 	if err != nil {
 		t.Fatal(err)
 	}
