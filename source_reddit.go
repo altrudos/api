@@ -33,16 +33,21 @@ type RedditThing struct {
 	Subreddit string  `json:"subreddit"`
 }
 
-func (c *RedditCommentInfo) ToMap() FlatMap {
+func (c *RedditThing) ToMap() FlatMap {
 	return FlatMap{
 		"subreddit": c.Subreddit,
+		"author":    c.Author,
+		"created":   c.Created,
+		"body":      c.Body,
 	}
 }
 
+func (c *RedditCommentInfo) ToMap() FlatMap {
+	return c.RedditThing.ToMap()
+}
+
 func (c *RedditPostInfo) ToMap() FlatMap {
-	return FlatMap{
-		"subreddit": c.Subreddit,
-	}
+	return c.RedditThing.ToMap()
 }
 
 type RedditCommentInfoResponse struct {

@@ -5,13 +5,12 @@ import (
 
 	. "github.com/charityhonor/ch-api"
 	"github.com/cyc-ttn/gorouter"
-	"github.com/jmoiron/sqlx"
 )
 
 var DriveRoutes = []*gorouter.Route{
 	NewGET("/drives", getDrives),
 	NewGET("/drives/top/:range", getTopDrives),
-	NewGET("/drive/:uri", getById("uri", "Drive", getDrive)),
+	NewGET("/drive/:uri", getDrive),
 	NewPOST("/drive", createDrive),
 }
 
@@ -38,16 +37,28 @@ func getDrives(c *RouteContext) {
 	defaultGetAll(c, "Drives", ViewDrives, &xs, cond)
 }
 
-func getDrive(db sqlx.Queryer, uri string) (interface{}, error) {
-	drive, err := GetDriveByUri(db, uri)
-	if err != nil {
-		return nil, err
+func getDrive(c *RouteContext) {
+	uri := c.Params["uri"]
+	if c.HandledMissingParam(uri) {
+		return
 	}
-	drive.Top10Donations, err = GetDriveTop10Donations(db, drive.Id)
-	if err != nil {
-		return nil, err
+	drive, err := GetDriveByUri(c.DB, uri)
+	if c.HandledError(err) {
+		return
 	}
-	return drive, nil
+	topDonations, err := GetDriveTopDonations(c.DB, drive.Id, 10)
+	if c.HandledError(err) {
+		return
+	}
+	recentDonations, err := GetDriveRecentDonations(c.DB, drive.Id, 10)
+	if c.HandledError(err) {
+		return
+	}
+	c.JSON(http.StatusOK, M{
+		"Drive":           drive,
+		"TopDonations":    topDonations,
+		"RecentDonations": recentDonations,
+	})
 }
 
 func createDrive(c *RouteContext) {
