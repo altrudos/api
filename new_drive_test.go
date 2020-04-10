@@ -17,9 +17,11 @@ func TestNewDrive(t *testing.T) {
 	}
 	nd := NewDrive{
 		SourceUrl: "https://www.reddit.com/r/ANormalDayInRussia/comments/fucm89/goodbye_anatoly/fmcx3tt/",
-		Amount:    "25.75",
-		CharityId: fixtures.CharityId1,
-		Currency:  "usd",
+		SubmittedDonation: &SubmittedDonation{
+			Amount:    "25.75",
+			CharityId: fixtures.CharityId1,
+			Currency:  "usd",
+		},
 	}
 
 	if err := nd.Process(tx); err != nil {
@@ -44,9 +46,11 @@ func TestNewDrive(t *testing.T) {
 	// but a new donation
 	nd2 := NewDrive{
 		SourceUrl: "https://np.reddit.com/r/ANormalDayInRussia/comments/fucm89/goodbye_anatoly/fmcx3tt/?context=3",
-		Amount:    "13.75",
-		CharityId: fixtures.CharityId1,
-		Currency:  "cad",
+		SubmittedDonation: &SubmittedDonation{
+			Amount:    "13.75",
+			CharityId: fixtures.CharityId1,
+			Currency:  "cad",
+		},
 	}
 
 	if err := nd2.Process(tx); err != nil {
@@ -70,32 +74,34 @@ func TestNewDriveValidation(t *testing.T) {
 	services := GetTestServices()
 	nd := NewDrive{
 		SourceUrl: "https://www.reddit.com/r/ANormalDayInRussia/comments/fucm89/goodbye_anatoly/fmcx3tt/",
-		Amount:    "-25.75",
-		CharityId: fixtures.CharityId1,
-		Currency:  "usd",
+		SubmittedDonation: &SubmittedDonation{
+			Amount:    "-25.75",
+			CharityId: fixtures.CharityId1,
+			Currency:  "usd",
+		},
 	}
 	if err := nd.Process(services.DB); err != ErrNegativeAmount {
 		t.Errorf("Wrong error expected %s but found %s", ErrNegativeAmount, err)
 	}
 
-	nd.Amount = "twenty bucks"
+	nd.SubmittedDonation.Amount = "twenty bucks"
 	if err := nd.Process(services.DB); err != ErrInvalidAmount {
 		t.Errorf("Wrong error expected %s but found %s", ErrInvalidAmount, err)
 	}
-	nd.Amount = "25.75"
+	nd.SubmittedDonation.Amount = "25.75"
 
-	nd.CharityId = ""
+	nd.SubmittedDonation.CharityId = ""
 	if err := nd.Process(services.DB); err != ErrNoCharity {
 		t.Errorf("Wrong error expected %s but found %s", ErrCharityNotFound, err)
 	}
 
-	nd.CharityId = fixtures.DonationId1
+	nd.SubmittedDonation.CharityId = fixtures.DonationId1
 	if err := nd.Process(services.DB); err != ErrCharityNotFound {
 		t.Errorf("Wrong error expected %s but found %s", ErrCharityNotFound, err)
 	}
 
-	nd.CharityId = fixtures.CharityId1
-	nd.Currency = "american"
+	nd.SubmittedDonation.CharityId = fixtures.CharityId1
+	nd.SubmittedDonation.Currency = "american"
 	if err := nd.Process(services.DB); err != ErrInvalidCurrency {
 		t.Errorf("Wrong error expected %s but found %s", ErrInvalidCurrency, err)
 	}
