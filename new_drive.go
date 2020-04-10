@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/monstercat/pgnull"
 )
 
 var (
@@ -17,11 +16,9 @@ var (
 // This form is for both creating a new drive and creating a donation for that
 // drive all in one
 type NewDrive struct {
-	SourceUrl string
-	Amount    string
-	Currency  string
-	CharityId string
-	Name      string
+	SourceUrl         string
+	Name              string
+	SubmittedDonation *SubmittedDonation
 
 	Drive    *Drive
 	Donation *Donation
@@ -63,23 +60,10 @@ func (nd *NewDrive) FetchOrCreateDrive(ext sqlx.Ext) (*Drive, error) {
 }
 
 func (nd *NewDrive) CreateDonation(ext sqlx.Ext) error {
-	amt, err := AmountFromString(nd.Amount)
+	dono, err := CreateDonation(ext, nd.Drive.Id, nd.SubmittedDonation)
 	if err != nil {
 		return err
 	}
-	if nd.Drive == nil {
-		return ErrDriveNotCreated
-	}
-	donation := &Donation{
-		DonorAmount:   amt,
-		DonorCurrency: nd.Currency,
-		CharityId:     nd.CharityId,
-		DriveId:       nd.Drive.Id,
-		Message:       pgnull.NullString{"", false},
-	}
-	if err := donation.Create(ext); err != nil {
-		return err
-	}
-	nd.Donation = donation
+	nd.Donation = dono
 	return nil
 }
