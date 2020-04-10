@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/lib/pq"
+
 	"github.com/Masterminds/squirrel"
 
 	dbUtil "github.com/monstercat/golib/db"
@@ -103,6 +105,8 @@ type Donation struct {
 	Message       pgnull.NullString `db:"message"`
 	Status        DonationStatus
 	ReferenceCode string `db:"reference_code"`
+
+	Drive *Drive `db:"-" setmap:"-""`
 }
 
 // Used in queries
@@ -186,6 +190,25 @@ func GetDonations(q sqlx.Queryer, ops *DonationOperators) ([]*Donation, error) {
 	}
 
 	return QueryDonations(q, &query)
+}
+
+func GetDonationsRecent(q sqlx.Queryer, ops *DonationOperators) ([]*Donation, error) {
+	query := QueryBuilder.
+		Select(GetColumns(DonationColumns)...).
+		From(TableDonations).
+		Where("status = ?", DonationAccepted).
+		OrderBy("created DESC")
+
+	donations, err := QueryDonations(q, &query)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err := PopulateDonationsDrives(q, donations); err != nil {
+		return nil, err
+	}
+	return donations, nil
 }
 
 func (d *Donation) GenerateReferenceCode(ext sqlx.Ext) error {
@@ -399,4 +422,31 @@ func AmountFromString(amount string) (int, error) {
 
 	// Convert dollars to cents
 	return int(f * 100), nil
+}
+
+func PopulateDonationsDrives(db sqlx.Queryer, donations []*Donation) error {
+	ids := make([]string, 0)
+	for _, v := range donations {
+		ids = append(ids, v.DriveId)
+	}
+
+	drives, err := GetDrives(db, &Cond{
+		Where: squirrel.Expr("id = ANY (?)", pq.StringArray(ids)),
+	})
+	if err != nil {
+		return err
+	}
+	driveMap := make(map[string]*Drive, len(drives))
+	for _, v := range drives {
+		driveMap[v.Id] = v
+	}
+
+	for k, v := range donations {
+		if drive, ok := driveMap[v.DriveId]; ok {
+			donations[k].Drive = drive
+		} else {
+			return errors.New("could not find a drive to populate into donation")
+		}
+	}
+	return nil
 }

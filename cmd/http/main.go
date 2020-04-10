@@ -8,6 +8,7 @@ func main() {
 
 	s.AddRoutes(
 		CharityRoutes,
+		DonationRoutes,
 		DriveRoutes,
 	)
 
