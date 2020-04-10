@@ -73,13 +73,25 @@ var ErrorMap = map[error]RouteError{
 		Code:    http.StatusNotFound,
 		Message: "Not found",
 	},
+	ErrSourceInvalidURL: {
+		Code:    http.StatusBadRequest,
+		Message: "Invalid source URL provided.",
+	},
 	ErrNoCharity: {
-		Code: http.StatusBadRequest,
+		Code:    http.StatusBadRequest,
 		Message: "No charity provided.",
 	},
 	ErrInvalidCurrency: {
-		Code: http.StatusBadRequest,
+		Code:    http.StatusBadRequest,
 		Message: "Invalid currency.",
+	},
+	ErrInvalidAmount: {
+		Code:    http.StatusBadRequest,
+		Message: "Invalid donation amount.",
+	},
+	ErrNegativeAmount: {
+		Code:    http.StatusBadRequest,
+		Message: "Donation amount can't be negative.",
 	},
 }
 

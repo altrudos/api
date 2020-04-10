@@ -12,7 +12,7 @@ const (
 )
 
 func TestGetCharities(t *testing.T) {
-	ts, _ := MustGetTestServer(GetFeaturedCharitiesRoute)
+	ts, _ := MustGetTestServer(CharityRoutes...)
 
 	resp, err := CallJson(ts, http.MethodGet, "/charities", nil)
 	if err != nil {
@@ -20,14 +20,15 @@ func TestGetCharities(t *testing.T) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		t.Fatal("Should be status ok")
+		t.Error(respBody(resp.Body))
+		t.Error("Should be status ok got", resp.StatusCode)
 	}
 
 	if err := CheckResponseBody(resp.Body, &expectm.ExpectedM{
 		"Charities.Data.#": 2,
-		"Charities.Total":     2,
-		"Charities.Limit":     50,
-		"Charities.Offset":    0,
+		"Charities.Total":  2,
+		"Charities.Limit":  50,
+		"Charities.Offset": 0,
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -44,7 +45,7 @@ func TestGetCharity(t *testing.T) {
 	}
 
 	if err := CheckResponseBody(resp.Body, &expectm.ExpectedM{
-		"Charity.Id":  CharityId,
+		"Charity.Id": CharityId,
 	}); err != nil {
 		t.Fatal(err)
 	}
