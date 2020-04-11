@@ -105,6 +105,7 @@ type Donation struct {
 	Message       pgnull.NullString `db:"message"`
 	Status        DonationStatus
 	ReferenceCode string `db:"reference_code"`
+	USDAmount     int    `db:"usd_amount"`
 
 	Drive *Drive `db:"-" setmap:"-""`
 }
@@ -397,6 +398,10 @@ func (d *Donation) CheckStatus(ext sqlx.Ext, jg *justgiving.JustGiving) error {
 		}
 		d.FinalAmount = int(amount * 100)
 		d.FinalCurrency = pgnull.NullString{jgDonation.CurrencyCode, true}
+		usd, err := ExchangeToUSD(d.FinalAmount, d.FinalCurrency.String)
+		if err == nil {
+			d.USDAmount = usd
+		}
 	}
 
 	d.LastChecked = pgnull.NullTime{time.Now(), true}

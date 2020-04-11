@@ -36,7 +36,8 @@ func TestGetDrives(t *testing.T) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		t.Fatal("Should be status ok")
+		t.Error(respBody(resp.Body))
+		t.Error("Should be status ok")
 	}
 
 	if err := CheckResponseBody(resp.Body, &expectm.ExpectedM{
