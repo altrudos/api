@@ -77,7 +77,7 @@ func createDrive(c *RouteContext) {
 		return
 	}
 
-	link, err := nd.Donation.GetDonationLink(c.Services.JG)
+	link, err := nd.Donation.GetDonationLink(c.Services.JG, c.Config.BaseUrl)
 	if c.HandledError(err) {
 		tx.Rollback()
 		return
@@ -113,7 +113,7 @@ func createDriveDonation(c *RouteContext) {
 		return
 	}
 
-	link, err := donation.GetDonationLink(c.Services.JG)
+	link, err := donation.GetDonationLink(c.Services.JG, c.Config.BaseUrl)
 	if c.HandledError(err) {
 		tx.Rollback()
 		return

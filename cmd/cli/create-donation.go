@@ -40,6 +40,7 @@ func createDonation(name string, args []string) error {
 		return err
 	}
 
+	conf := MustGetConfig(confFile)
 	services := MustGetConfigServices(confFile)
 	db := services.DB
 	jg := services.JG
@@ -100,7 +101,7 @@ func createDonation(name string, args []string) error {
 		return err
 	}
 	spl("")
-	link, err := donation.GetDonationLink(jg)
+	link, err := donation.GetDonationLink(jg, conf.BaseUrl)
 	if err != nil {
 		return err
 	}

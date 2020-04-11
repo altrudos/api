@@ -1,12 +1,14 @@
 package charityhonor
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/charityhonor/ch-api/pkg/fixtures"
 )
 
 func TestNewDrive(t *testing.T) {
+	config := MustGetTestConfig()
 	services := GetTestServices()
 	db := services.DB
 	tx, err := db.Beginx()
@@ -36,10 +38,13 @@ func TestNewDrive(t *testing.T) {
 		t.Fatal("Donation should not be nil")
 	}
 
-	if url, err := nd.Donation.GetDonationLink(services.JG); err != nil {
+	if url, err := nd.Donation.GetDonationLink(services.JG, config.BaseUrl); err != nil {
 		t.Error(err)
 	} else if url == "" {
 		t.Error("URL to donate shouldn't be blank")
+		if !strings.Contains(url, "exitUrl") {
+			t.Error("donation link should have exitUrl")
+		}
 	}
 
 	// Create another with the same source should return the same drive

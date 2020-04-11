@@ -1,4 +1,6 @@
 Postgres="postgresql://charityhonor@localhost/ch?sslmode=disable"
+WebsiteUrl="http://localhost:3000"
+BaseUrl="http://localhost:8989"
 
 [JustGiving]
 AppId="some-app-id"

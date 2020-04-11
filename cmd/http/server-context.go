@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 
 	"github.com/cyc-ttn/gorouter"
 
@@ -14,6 +15,7 @@ import (
 type RouteContext struct {
 	gorouter.RouteContext
 	*Services
+	*Config
 }
 
 func (c *RouteContext) Status(status int) {
@@ -32,6 +34,10 @@ func (c *RouteContext) String(status int, format string, data ...interface{}) {
 	if _, err := io.WriteString(c.W, fmt.Sprintf(format, data...)); err != nil {
 		log.Println(err)
 	}
+}
+
+func (c *RouteContext) Redirect(status int, dest string) {
+	http.Redirect(c.W, c.R, dest, status)
 }
 
 func (c *RouteContext) ShouldBindJSON(v interface{}) error {

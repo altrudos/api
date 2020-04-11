@@ -36,6 +36,7 @@ func getDriveForTesting() (*Drive, *sqlx.Tx, *sqlx.DB) {
 }
 
 func TestDonationCRUD(t *testing.T) {
+	conf := MustGetTestConfig()
 	drive, tx, _ := getDriveForTesting()
 
 	donation := Donation{
@@ -88,30 +89,30 @@ func TestDonationCRUD(t *testing.T) {
 
 	donError := Donation{}
 
-	_, err = donError.GetDonationLink(jg)
+	_, err = donError.GetDonationLink(jg, conf.BaseUrl)
 	if err == nil {
 		t.Error("Get donation link should fail if missing data")
 	}
 
 	donError.DonorAmount = 30
-	_, err = donError.GetDonationLink(jg)
+	_, err = donError.GetDonationLink(jg, conf.BaseUrl)
 	if err == nil {
 		t.Error("Get donation link should fail if missing amount")
 	}
 
 	donError.DonorCurrency = "USD"
-	_, err = donError.GetDonationLink(jg)
+	_, err = donError.GetDonationLink(jg, conf.BaseUrl)
 	if err == nil {
 		t.Error("Get donation link should fail if missing currency code")
 	}
 
 	donError.CharityId = fixtures.CharityId1
-	_, err = donError.GetDonationLink(jg)
+	_, err = donError.GetDonationLink(jg, conf.BaseUrl)
 	if err == nil {
 		t.Error("Get donation link should fail if missing charity")
 	}
 
-	url, err := dono2.GetDonationLink(jg)
+	url, err := dono2.GetDonationLink(jg, conf.BaseUrl)
 	if err != nil {
 		t.Fatal(err)
 	}

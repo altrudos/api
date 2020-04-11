@@ -17,6 +17,8 @@ var (
 type Config struct {
 	Postgres   string
 	JustGiving JGConfig
+	WebsiteUrl string // Frontend
+	BaseUrl    string //backend
 }
 
 type JGConfig struct {
@@ -43,6 +45,14 @@ func GetConfigServices(confFile string) (*Services, error) {
 		return nil, err
 	}
 	return c.Connect()
+}
+
+func MustGetConfig(confFile string) *Config {
+	conf, err := ParseConfig(confFile)
+	if err != nil {
+		panic(err)
+	}
+	return conf
 }
 
 func ParseConfig(confFile string) (*Config, error) {

@@ -3,12 +3,13 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/cyc-ttn/gorouter"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
+
+	"github.com/cyc-ttn/gorouter"
 
 	"github.com/monstercat/golib/expectm"
 
@@ -19,10 +20,11 @@ var (
 	TestConfigPath = os.Getenv("TESTCONFIG")
 )
 
-func MustGetTestServer(routes ... *gorouter.Route) (*httptest.Server, *Services) {
+func MustGetTestServer(routes ...*gorouter.Route) (*httptest.Server, *Services) {
 	s := &Server{
-		S: MustGetTestServices(),
-		R: gorouter.NewRouter(),
+		S:      MustGetTestServices(),
+		R:      gorouter.NewRouter(),
+		Config: MustGetTestConfig(),
 	}
 	if err := s.AddRoutes(routes); err != nil {
 		panic(err)
@@ -47,7 +49,7 @@ func CallJson(ts *httptest.Server, method, path string, data interface{}) (*http
 	if err != nil {
 		return nil, err
 	}
-	req, err := http.NewRequest(method, ts.URL + path, bytes.NewReader(byt))
+	req, err := http.NewRequest(method, ts.URL+path, bytes.NewReader(byt))
 	if err != nil {
 		return nil, err
 	}
