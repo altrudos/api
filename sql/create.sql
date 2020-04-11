@@ -49,12 +49,14 @@ CREATE TABLE IF NOT EXISTS donations
     message             TEXT,
     message_visible     BOOLEAN         NOT NULL DEFAULT FALSE,
     status              donation_status NOT NULL DEFAULT 'Pending',
-    reference_code      TEXT            NOT NULL UNIQUE
+    reference_code      TEXT            NOT NULL UNIQUE,
+    usd_amount INT NOT NULL DEFAULT 0
 );
 CREATE INDEX donation_charity_id ON donations (charity_id);
 CREATE INDEX donation_drive_id ON donations (drive_id);
 CREATE INDEX donation_donor_amount ON donations (donor_amount);
 CREATE INDEX donation_final_amount ON donations (final_amount);
+CREATE INDEX donation_usd_amount ON donations (usd_amount);
 CREATE INDEX donation_created ON donations (created);
 
 CREATE TABLE IF NOT EXISTS search_cache

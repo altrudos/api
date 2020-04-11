@@ -25,8 +25,7 @@ var CharityRoutes = []*gorouter.Route{
 }
 
 var CharityColMap = map[string]string{
-	"total": "final_amount_total",
-	"max":   "final_amount_max",
+	"total": "usd_amount_total",
 }
 
 func getCharities(c *RouteContext) {
@@ -40,7 +39,7 @@ func getCharities(c *RouteContext) {
 	if err == nil && cacheItem != nil {
 		if !cacheItem.Expired() {
 			found = true
-		}else{
+		} else {
 			_ = cacheItem.Delete(c.DB)
 		}
 	}
@@ -60,7 +59,7 @@ func getCharities(c *RouteContext) {
 			})
 			ids = append(ids, int64(d.Id))
 		}
-		if err := CreateSearchCache(c.DB, search, ids); err != nil  {
+		if err := CreateSearchCache(c.DB, search, ids); err != nil {
 			log.Print("Could not create search cache")
 		}
 		go func() {

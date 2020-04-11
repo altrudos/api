@@ -25,12 +25,10 @@ type Charity struct {
 
 	// From View
 	MostRecentDonorAmount int      `db:"most_recent_donor_amount" setmap:"-"`
-	MostRecentFinalAmount int      `db:"most_recent_final_amount" setmap:"-"`
+	MostRecentUSDAmount   int      `db:"most_recent_usd_amount" setmap:"-"`
 	MostRecentTime        NullTime `db:"most_recent_time" setmap:"-"`
-	FinalAmountTotal      int      `db:"final_amount_total" setmap:"-"`
-	FinalAmountMax        int      `db:"final_amount_max" setmap:"-"`
+	USDAmountTotal        int      `db:"usd_amount_total" setmap:"-"`
 	DonorAmountTotal      int      `db:"donor_amount_total" setmap:"-"`
-	DonorAmountMax        int      `db:"donor_amount_max" setmap:"-"`
 
 	// Filled in afterwards
 	Top10Donations []*Donation `db:"-" setmap:"-"`
@@ -89,7 +87,7 @@ func GetCharityTop10Donations(db sqlx.Queryer, cId string) ([]*Donation, error) 
 	var xs []*Donation
 	cond := &Cond{
 		Where:    squirrel.Eq{"charity_id": cId},
-		OrderBys: []string{"-final_amount"},
+		OrderBys: []string{"-usd_amount"},
 		Limit:    10,
 	}
 	if err := SelectForStruct(db, &xs, TableDonations, cond); err != nil {
@@ -124,7 +122,7 @@ func GetCharityByName(tx sqlx.Queryer, name string) (*Charity, error) {
 	return &d, err
 }
 
-func GetCharities(db sqlx.Queryer, cond *Cond) (xs []*Charity,err error) {
+func GetCharities(db sqlx.Queryer, cond *Cond) (xs []*Charity, err error) {
 	err = SelectForStruct(db, &xs, ViewCharities, cond)
 	return
 }

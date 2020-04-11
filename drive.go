@@ -36,12 +36,10 @@ type Drive struct {
 
 	// From View
 	MostRecentDonorAmount int      `db:"most_recent_donor_amount" setmap:"-"`
-	MostRecentFinalAmount int      `db:"most_recent_final_amount" setmap:"-"`
+	MostRecentUSDAmount   int      `db:"most_recent_usd_amount" setmap:"-"`
 	MostRecentTime        NullTime `db:"most_recent_time" setmap:"-"`
-	FinalAmountTotal      int      `db:"final_amount_total" setmap:"-"`
-	FinalAmountMax        int      `db:"final_amount_max" setmap:"-"`
+	USDAmountTotal        int      `db:"usd_amount_total" setmap:"-"`
 	DonorAmountTotal      int      `db:"donor_amount_total" setmap:"-"`
-	DonorAmountMax        int      `db:"donor_amount_max" setmap:"-"`
 
 	// Filled in afterwards
 	Top10Donations    []*Donation `db:"-" setmap:"-"`
@@ -77,7 +75,7 @@ WHERE  <some condition to retrieve a small subset>
 GROUP  BY 1;*/
 func GetTopDrives(db sqlx.Queryer) ([]*DriveTallied, error) {
 	qry := QueryBuilder.Select("dr.*, sq.top_amount").
-		From(`(SELECT SUM(final_amount) as top_amount, COUNT(dono.id) as num_donations, drive_id
+		From(`(SELECT SUM(usd_amount) as top_amount, COUNT(dono.id) as num_donations, drive_id
 		FROM ` + TableDonations + ` dono
 		WHERE dono.created >= NOW() - INTERVAL '7 DAYS' 
 		AND dono.status = 'Accepted'
@@ -111,7 +109,7 @@ func GetDriveTopDonations(db sqlx.Queryer, cId string, num int) ([]*Donation, er
 			"drive_id": cId,
 			"status":   DonationAccepted,
 		},
-		OrderBys: []string{"-final_amount"},
+		OrderBys: []string{"-usd_amount"},
 		Limit:    num,
 	}
 	if err := SelectForStruct(db, &xs, TableDonations, cond); err != nil {

@@ -171,10 +171,11 @@ func TestGetTopDrives(t *testing.T) {
 	donation := Donation{
 		CharityId:     fixtures.CharityId1,
 		Status:        DonationAccepted,
-		FinalAmount:   50,
+		FinalAmount:   32,
+		USDAmount:     50,
 		DonorCurrency: "GBP",
 		DriveId:       drive.Id,
-		FinalCurrency: pgnull.NullString{"USD", true},
+		FinalCurrency: pgnull.NullString{"EUR", true},
 	}
 	if err := donation.Create(db); err != nil {
 		t.Fatal(err)
@@ -192,6 +193,7 @@ func TestGetTopDrives(t *testing.T) {
 		CharityId:     fixtures.CharityId1,
 		Status:        DonationAccepted,
 		FinalAmount:   1000000,
+		USDAmount:     1000000,
 		DonorCurrency: "CAD",
 		DriveId:       drive.Id,
 		FinalCurrency: pgnull.NullString{"USD", true},
@@ -214,7 +216,7 @@ func TestGetTopDrives(t *testing.T) {
 		for _, v := range drives {
 			fmt.Println("top", v.TopAmount)
 		}
-		t.Errorf("Top amount shouldbe 100050 not %d", drives[0].TopAmount)
+		t.Errorf("Top amount should be 100050 not %d", drives[0].TopAmount)
 	}
 
 	// Cleanup

@@ -16,8 +16,7 @@ var DriveRoutes = []*gorouter.Route{
 }
 
 var DriveColMap = map[string]string{
-	"total": "final_amount_total",
-	"max":   "final_amount_max",
+	"total": "usd_amount_total",
 }
 
 func getTopDrives(c *RouteContext) {
