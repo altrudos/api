@@ -77,7 +77,7 @@ GROUP  BY 1;*/
 func GetTopDrives(db sqlx.Queryer) ([]*DriveTallied, error) {
 	qry := QueryBuilder.Select("dr.*, sq.top_amount").
 		From(`(SELECT SUM(usd_amount) as top_amount, COUNT(dono.id) as num_donations, drive_id
-		FROM ` + TableDonations + ` dono
+		FROM ` + ViewDonations + ` dono
 		WHERE dono.created >= NOW() - INTERVAL '7 DAYS' 
 		AND dono.status = 'Accepted'
 		GROUP BY drive_id) sq`).
@@ -113,7 +113,7 @@ func GetDriveTopDonations(db sqlx.Queryer, cId string, num int) ([]*Donation, er
 		OrderBys: []string{"-usd_amount"},
 		Limit:    num,
 	}
-	if err := SelectForStruct(db, &xs, TableDonations, cond); err != nil {
+	if err := SelectForStruct(db, &xs, ViewDonations, cond); err != nil {
 		return nil, err
 	}
 	return xs, nil
@@ -129,7 +129,7 @@ func GetDriveRecentDonations(db sqlx.Queryer, cId string, num int) ([]*Donation,
 		OrderBys: []string{"created DESC"},
 		Limit:    num,
 	}
-	if err := SelectForStruct(db, &xs, TableDonations, cond); err != nil {
+	if err := SelectForStruct(db, &xs, ViewDonations, cond); err != nil {
 		return nil, err
 	}
 	return xs, nil
@@ -234,7 +234,7 @@ func (d *Drive) GenerateDonation() *Donation {
 
 func (d *Drive) GetDonationQueryBuilder() squirrel.SelectBuilder {
 	return QueryBuilder.Select(dbUtil.GetColumnsList(&Donation{}, "")...).
-		From(TableDonations).
+		From(ViewDonations).
 		Where("drive_id=?", d.Id)
 }
 

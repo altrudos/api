@@ -4,10 +4,10 @@ VALUES ('3656cf1d-8826-404c-8f85-77f3e1f50464', 'https://www.reddit.com/r/Public
 INSERT INTO charities (id, name, logo_url, description, summary, jg_charity_id, feature_score)
 VALUES ('9d0b23cd-657b-4cc4-8258-a8cabb1f6847', 'The Demo Charity',
         'https://images.staging.justgiving.com/image/fd300863-43d6-4da7-b5ac-724e008f483d.png"',
-        '29c50192-e194-4fd8-9ae5-333d54e9c357', '', 2050, 1),
+        'The Demo charity takes demos and makes them charitable.', '', 2050, 1),
        ('627e0410-c75d-48c8-b41f-6318d04f1e65', 'Fake Charity',
         'https://images.staging.justgiving.com/image/fd300863-43d6-4da7-b5ac-724e008f483d.png"',
-        '29c50192-e194-4fd8-9ae5-333d54e9c357', '', 2051, 2);
+        'This charity is a fake one used for testing. It provides free water to other fake test data.', '', 2051, 2);
 
 INSERT INTO donations (id, drive_id, charity_id, donor_amount, donor_currency, final_amount, final_currency, usd_amount, reference_code,
                        donor_name, status, created, next_check)
@@ -23,5 +23,5 @@ VALUES ('b17f0a2d-8de6-4009-8efa-9aca898338c3', '3656cf1d-8826-404c-8f85-77f3e1f
         '9d0b23cd-657b-4cc4-8258-a8cabb1f6847', 32000, 'USD', 31001, 'USD', 31001, 'ch-1234567893', 'Big Spender', 'Accepted',
         NOW() - INTERVAL '1 MIN', '2019-01-01'),
        ('4f6241f4-903f-459b-bf02-fd14c825d8d8', '3656cf1d-8826-404c-8f85-77f3e1f50464',
-        '9d0b23cd-657b-4cc4-8258-a8cabb1f6847', 1400, 'CAD', 1332, 'USD', 1332, 'ch-1234567894', '', 'Accepted', NOW(),
+        '9d0b23cd-657b-4cc4-8258-a8cabb1f6847', 1400, 'CAD', 1332, 'USD', 1332, 'ch-1234567894', 'FordonGreeman', 'Accepted', NOW(),
         '2019-01-01');

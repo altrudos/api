@@ -37,6 +37,7 @@ type Charity struct {
 var (
 	TableCharities        = "charities"
 	ViewCharities         = "charities_view"
+	ViewDonations         = "donations_view"
 	ViewFeaturedCharities = "featured_charities_view"
 )
 
@@ -90,7 +91,7 @@ func GetCharityTop10Donations(db sqlx.Queryer, cId string) ([]*Donation, error) 
 		OrderBys: []string{"-usd_amount"},
 		Limit:    10,
 	}
-	if err := SelectForStruct(db, &xs, TableDonations, cond); err != nil {
+	if err := SelectForStruct(db, &xs, ViewDonations, cond); err != nil {
 		return nil, err
 	}
 	return xs, nil

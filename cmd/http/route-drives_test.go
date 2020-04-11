@@ -88,11 +88,12 @@ func TestGetDrive(t *testing.T) {
 	}
 
 	if err := CheckResponseBody(resp.Body, &expectm.ExpectedM{
-		"Drive.Id":           DriveId,
-		"Drive.Uri":          DriveUri,
-		"Drive.NumDonations": 3,
-		"RecentDonations.#":  3,
-		"TopDonations.#":     3,
+		"Drive.Id":                   DriveId,
+		"Drive.Uri":                  DriveUri,
+		"Drive.NumDonations":         3,
+		"RecentDonations.#":          3,
+		"TopDonations.#":             3,
+		"TopDonations.0.CharityName": "The Demo Charity",
 	}); err != nil {
 		t.Fatal(err)
 	}
@@ -200,6 +201,18 @@ func TestCreateDrive(t *testing.T) {
 			},
 			ExpectedStatus: http.StatusOK,
 		},
+		{
+			Payload: charityhonor.FlatMap{
+				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
+				"SubmittedDonation": charityhonor.M{
+					"CharityId": fixtures.CharityId1,
+					"Amount":    "100.50",
+					"Currency":  "eur",
+					"DonorName": "Elder",
+				},
+			},
+			ExpectedStatus: http.StatusOK,
+		},
 	}
 
 	for i, test := range tests {
@@ -219,9 +232,18 @@ func TestCreateDrive(t *testing.T) {
 		}
 	}
 
-	// Cleanup
 	db := charityhonor.GetTestDb()
-	_, err := db.Exec("DELETE FROM " + charityhonor.TableDonations + " WHERE donor_amount = 10050 AND donor_currency = 'EUR'")
+
+	dono, err := charityhonor.GetDonationByField(db, "donor_name", "Elder")
+	if err != nil {
+		t.Error(err)
+	}
+	if dono == nil {
+		t.Error("No find Elder's donation")
+	}
+
+	// Cleanup
+	_, err = db.Exec("DELETE FROM " + charityhonor.TableDonations + " WHERE donor_amount = 10050 AND donor_currency = 'EUR'")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -312,6 +334,17 @@ func TestCreateDriveDonation(t *testing.T) {
 			},
 			ExpectedStatus: http.StatusOK,
 		},
+		{
+			Payload: charityhonor.FlatMap{
+				"SubmittedDonation": charityhonor.M{
+					"CharityId": fixtures.CharityId1,
+					"Amount":    "100.87",
+					"Currency":  "eur",
+					"DonorName": "Shaper",
+				},
+			},
+			ExpectedStatus: http.StatusOK,
+		},
 	}
 
 	for i, test := range tests {
@@ -331,9 +364,18 @@ func TestCreateDriveDonation(t *testing.T) {
 		}
 	}
 
-	// Cleanup
 	db := charityhonor.GetTestDb()
-	_, err := db.Exec("DELETE FROM " + charityhonor.TableDonations + " WHERE donor_amount = 10087 AND donor_currency = 'EUR'")
+	// Should find one with name
+	dono, err := charityhonor.GetDonationByField(db, "donor_name", "Shaper")
+	if err != nil {
+		t.Error(err)
+	}
+	if dono == nil {
+		t.Error("No find Shaper's donation")
+	}
+
+	// Cleanup
+	_, err = db.Exec("DELETE FROM " + charityhonor.TableDonations + " WHERE donor_amount = 10087 AND donor_currency = 'EUR'")
 	if err != nil {
 		t.Fatal(err)
 	}
