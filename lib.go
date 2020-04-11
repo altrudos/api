@@ -20,12 +20,8 @@ var ValidCurrencies = map[string]string{
 	"USD": "USD",
 	"CAD": "CAD",
 	"EUR": "EUR",
-	"HKD": "HKD",
-	"SGD": "SGD",
-	"AED": "AED",
-	"AUD": "AUD",
-	"ZAR": "ZAR",
 	"GBP": "GBP",
+	"AUD": "AUD",
 }
 
 type M map[string]interface{}
