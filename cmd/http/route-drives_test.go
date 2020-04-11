@@ -88,10 +88,11 @@ func TestGetDrive(t *testing.T) {
 	}
 
 	if err := CheckResponseBody(resp.Body, &expectm.ExpectedM{
-		"Drive.Id":          DriveId,
-		"Drive.Uri":         DriveUri,
-		"RecentDonations.#": 3,
-		"TopDonations.#":    3,
+		"Drive.Id":           DriveId,
+		"Drive.Uri":          DriveUri,
+		"Drive.NumDonations": 3,
+		"RecentDonations.#":  3,
+		"TopDonations.#":     3,
 	}); err != nil {
 		t.Fatal(err)
 	}

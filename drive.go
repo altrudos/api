@@ -35,6 +35,7 @@ type Drive struct {
 	Uri        string
 
 	// From View
+	NumDonations          int      `db:"num_donations" setmap:"-"`
 	MostRecentDonorAmount int      `db:"most_recent_donor_amount" setmap:"-"`
 	MostRecentUSDAmount   int      `db:"most_recent_usd_amount" setmap:"-"`
 	MostRecentTime        NullTime `db:"most_recent_time" setmap:"-"`

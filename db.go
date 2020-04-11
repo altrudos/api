@@ -124,7 +124,7 @@ func GetForStruct(db sqlx.Queryer, val interface{}, table string, where interfac
 
 func GetCount(db sqlx.Queryer, qry squirrel.SelectBuilder) (int, error) {
 	var total int
-	if err:= dbUtil.Get(db, &total, qry); err != nil {
+	if err := dbUtil.Get(db, &total, qry); err != nil {
 		return 0, err
 	}
 	return total, nil
