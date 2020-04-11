@@ -28,6 +28,8 @@ func TestGetDonationsRecent(t *testing.T) {
 		"Donations.#":             3,
 		"Donations.0.Drive.Uri":   "PrettyPinkMoon",
 		"Donations.0.FinalAmount": 1332,
+		"Donations.0.DonorName":   "FordonGreeman",
+		"Donations.0.CharityName": "The Demo Charity",
 	}); err != nil {
 		t.Fatal(err)
 	}

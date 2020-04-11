@@ -67,3 +67,9 @@ FROM charities
 DROP VIEW IF EXISTS featured_charities_view;
 CREATE VIEW featured_charities_view AS
 SELECT * FROM charities_view WHERE feature_score > 0;
+
+DROP VIEW IF EXISTS donations_view;
+CREATE VIEW donations_view AS
+SELECT donations.*, c.name as charity_name, c.description as charity_description, c.website_url as charity_website_url
+FROM donations
+JOIN charities as c ON c.id = donations.charity_id;
