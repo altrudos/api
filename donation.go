@@ -66,6 +66,10 @@ var (
 		"Message":           "message",
 		"ReferenceCode":     "reference_code",
 		"Status":            "status",
+
+		"CharityDescription": "charity_description",
+		"CharityName":        "charity_name",
+		"CharityWebsiteUrl":  "charity_website_url",
 	}
 )
 
@@ -108,6 +112,11 @@ type Donation struct {
 	USDAmount     int    `db:"usd_amount"`
 
 	Drive *Drive `db:"-" setmap:"-""`
+
+	// From the join in the view
+	CharityName        pgnull.NullString `db:"charity_name" setmap:"-"`
+	CharityDescription pgnull.NullString `db:"charity_description" setmap:"-"`
+	CharityWebsiteUrl  pgnull.NullString `db:"charity_website_url" setmap:"-"`
 }
 
 // Used in queries
@@ -119,7 +128,7 @@ type DonationOperators struct {
 func GetDonationByField(tx sqlx.Queryer, field string, val interface{}) (*Donation, error) {
 	query, args, err := QueryBuilder.
 		Select(GetColumns(DonationColumns)...).
-		From(TableDonations).Where(field+"=?", val).
+		From(ViewDonations).Where(field+"=?", val).
 		ToSql()
 	if err != nil {
 		return nil, err
@@ -184,7 +193,7 @@ func QueryDonations(q sqlx.Queryer, query *squirrel.SelectBuilder) ([]*Donation,
 func GetDonations(q sqlx.Queryer, ops *DonationOperators) ([]*Donation, error) {
 	query := QueryBuilder.
 		Select(GetColumns(DonationColumns)...).
-		From(TableDonations)
+		From(ViewDonations)
 
 	if len(ops.Statuses) > 0 {
 		query = query.Where("status = ANY (?)", StatusesPQStringArray(ops.Statuses))
@@ -194,9 +203,10 @@ func GetDonations(q sqlx.Queryer, ops *DonationOperators) ([]*Donation, error) {
 }
 
 func GetDonationsRecent(q sqlx.Queryer, ops *DonationOperators) ([]*Donation, error) {
+	columns := GetColumns(DonationColumns)
 	query := QueryBuilder.
-		Select(GetColumns(DonationColumns)...).
-		From(TableDonations).
+		Select(columns...).
+		From(ViewDonations).
 		Where("status = ?", DonationAccepted).
 		OrderBy("created DESC")
 

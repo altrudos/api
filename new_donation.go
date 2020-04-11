@@ -15,6 +15,7 @@ type SubmittedDonation struct {
 	Amount    string
 	CharityId string
 	Currency  string
+	DonorName string
 }
 
 func CreateDonation(ext sqlx.Ext, driveId string, dono *SubmittedDonation) (*Donation, error) {
@@ -31,6 +32,7 @@ func CreateDonation(ext sqlx.Ext, driveId string, dono *SubmittedDonation) (*Don
 	donation := &Donation{
 		DonorAmount:   amt,
 		DonorCurrency: dono.Currency,
+		DonorName:     pgnull.NewNullString(dono.DonorName),
 		CharityId:     dono.CharityId,
 		DriveId:       driveId,
 		Message:       pgnull.NullString{"", false},
