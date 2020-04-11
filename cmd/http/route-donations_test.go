@@ -4,6 +4,10 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/charityhonor/ch-api/pkg/fixtures"
+
+	. "github.com/charityhonor/ch-api"
+
 	"github.com/monstercat/golib/expectm"
 )
 
@@ -27,4 +31,44 @@ func TestGetDonationsRecent(t *testing.T) {
 	}); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestCheckDonation(t *testing.T) {
+	ts, _ := MustGetTestServer(DonationRoutes...)
+	services := MustGetTestServices()
+	db := services.DB
+	defer db.Close()
+
+	donation, err := GetDonationById(db, fixtures.DonationId1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	donation.Status = DonationPending
+	saveDonation := func() {
+		if err := donation.Save(db); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	_, err = CallJson(ts, http.MethodGet, "/donations/check/"+donation.ReferenceCode, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	/*
+		if resp.StatusCode != http.StatusTemporaryRedirect {
+			t.Error(respBody(resp.Body))
+			t.Error("Should be status ok got", resp.StatusCode)
+		}
+	*/
+	donation, err = GetDonationById(db, fixtures.DonationId1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if donation.Status != DonationAccepted {
+		t.Errorf("Expected status Accepted but got %s", donation.Status)
+	}
+
+	//Cleanup
+	donation.Status = DonationPending
+	saveDonation()
 }

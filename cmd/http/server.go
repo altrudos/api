@@ -12,9 +12,10 @@ import (
 )
 
 type Server struct {
-	Port int
-	S    *Services
-	R    *gorouter.RouterNode
+	Port   int
+	S      *Services
+	Config *Config
+	R      *gorouter.RouterNode
 }
 
 func (s *Server) ParseFlags() error {
@@ -23,11 +24,16 @@ func (s *Server) ParseFlags() error {
 	flag.StringVar(&confFile, "config", "", "Configuration File")
 	flag.Parse()
 
-	services, err := GetConfigServices(confFile)
+	config, err := ParseConfig(confFile)
+	if err != nil {
+		return err
+	}
+	services, err := config.Connect()
 	if err != nil {
 		return err
 	}
 	s.S = services
+	s.Config = config
 	return nil
 }
 
@@ -80,5 +86,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	route.HandlerFunc(&RouteContext{
 		Services:     s.S,
 		RouteContext: *ctx,
+		Config:       s.Config,
 	})
 }

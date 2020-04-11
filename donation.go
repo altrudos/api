@@ -315,7 +315,7 @@ func (d *Donation) Save(ext sqlx.Ext) error {
 exitUrl=http%3A%2F%2Flocalhost%3A9000%2Fconfirm%2F8930248302840%3FjgDonationId%3DJUSTGIVING-DONATION-ID
 &message=Woohoo!%20Let's%20fight%20cancer!
 */
-func (d *Donation) GetDonationLink(jg *justgiving.JustGiving) (string, error) {
+func (d *Donation) GetDonationLink(jg *justgiving.JustGiving, baseUrl string) (string, error) {
 	urls := url.Values{}
 	if d == nil {
 		panic("donation is nil")
@@ -340,6 +340,7 @@ func (d *Donation) GetDonationLink(jg *justgiving.JustGiving) (string, error) {
 	urls.Set("currency", d.DonorCurrency)
 	urls.Set("amount", AmountToString(d.DonorAmount))
 	urls.Set("reference", d.ReferenceCode)
+	urls.Set("exitUrl", fmt.Sprintf("%s/donations/check/%s", baseUrl, d.ReferenceCode))
 
 	return jg.GetDonationLink(d.Charity.JustGivingCharityId, urls), nil
 }
