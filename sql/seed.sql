@@ -1,5 +1,5 @@
-INSERT INTO drives (id, source_url, source_type, source_key, uri, amount)
-VALUES ('3656cf1d-8826-404c-8f85-77f3e1f50464', 'https://www.reddit.com/r/PublicFreakout/comments/fnnujk/ny_not_handling_this_shit_well/flbfd1j/', 'reddit_comment', 'flbfd1j', 'PrettyPinkMoon', 0);
+INSERT INTO drives (id, source_url, source_type, source_key, source_meta, uri, amount)
+VALUES ('3656cf1d-8826-404c-8f85-77f3e1f50464', 'https://www.reddit.com/r/PublicFreakout/comments/fnnujk/ny_not_handling_this_shit_well/flbfd1j/', 'reddit_comment', 'flbfd1j', '{"subreddit": "PublicFreakout", "author": "BRuX-", "title": "NY not handling this shit well"}', 'PrettyPinkMoon', 0);
 
 INSERT INTO charities (id, name, logo_url, description, summary, jg_charity_id, feature_score)
 VALUES ('9d0b23cd-657b-4cc4-8258-a8cabb1f6847', 'The Demo Charity',
