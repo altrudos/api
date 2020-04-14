@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"log"
 	"net/http"
@@ -10,6 +11,8 @@ import (
 
 	. "github.com/charityhonor/ch-api"
 )
+
+var ErrNoConfig = errors.New("-config flag missing")
 
 type Server struct {
 	Port   int
@@ -23,6 +26,10 @@ func (s *Server) ParseFlags() error {
 	flag.IntVar(&s.Port, "port", 8080, "Server port")
 	flag.StringVar(&confFile, "config", "", "Configuration File")
 	flag.Parse()
+
+	if confFile == "" {
+		return ErrNoConfig
+	}
 
 	config, err := ParseConfig(confFile)
 	if err != nil {

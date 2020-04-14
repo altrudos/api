@@ -51,8 +51,8 @@ type Drive struct {
 type DriveTallied struct {
 	Drive
 	// From sum queries
-	TopAmount    int `db:"top_amount" setmap:"-"`
-	NumDonations int `db:"num_donations" setmap:"-"`
+	TopAmount       int `db:"top_amount" setmap:"-"`
+	TopNumDonations int `db:"top_num_donations" setmap:"-"`
 }
 
 func GetDrive(db sqlx.Queryer, where interface{}) (*Drive, error) {
@@ -75,8 +75,8 @@ LEFT   JOIN pets pt ON pt.person_id = pp.id
 WHERE  <some condition to retrieve a small subset>
 GROUP  BY 1;*/
 func GetTopDrives(db sqlx.Queryer) ([]*DriveTallied, error) {
-	qry := QueryBuilder.Select("dr.*, sq.top_amount").
-		From(`(SELECT SUM(usd_amount) as top_amount, COUNT(dono.id) as num_donations, drive_id
+	qry := QueryBuilder.Select("dr.*, sq.top_amount, sq.top_num_donations").
+		From(`(SELECT SUM(usd_amount) as top_amount, COUNT(*) as top_num_donations, drive_id
 		FROM ` + ViewDonations + ` dono
 		WHERE dono.created >= NOW() - INTERVAL '7 DAYS' 
 		AND dono.status = 'Accepted'
