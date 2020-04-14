@@ -67,8 +67,11 @@ func TestGetTopDrives(t *testing.T) {
 	}
 
 	if err := CheckResponseBody(resp.Body, &expectm.ExpectedM{
-		"Drives.#":     1,
-		"Drives.0.Uri": "PrettyPinkMoon",
+		"Drives.#":                 1,
+		"Drives.0.Uri":             "PrettyPinkMoon",
+		"Drives.0.TopAmount":       32333,
+		"Drives.0.TopNumDonations": 2, // Only 2 are accepted in last 7 days
+		"Drives.0.NumDonations":    3, // 3 total
 	}); err != nil {
 		t.Error(err)
 	}

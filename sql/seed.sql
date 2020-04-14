@@ -18,7 +18,7 @@ VALUES ('b17f0a2d-8de6-4009-8efa-9aca898338c3', '3656cf1d-8826-404c-8f85-77f3e1f
         '2019-02-20'),
        ('899304f6-ea9d-4bc2-b7c1-df04aaa3b798', '3656cf1d-8826-404c-8f85-77f3e1f50464',
         '9d0b23cd-657b-4cc4-8258-a8cabb1f6847', 800, 'USD', 780, 'USD', 780, 'ch-1234567892', '', 'Accepted',
-        NOW() - INTERVAL '1 DAY', '2019-01-01'),
+        NOW() - INTERVAL '8 DAYS', '2019-01-01'),
        ('71800a64-fb75-4ced-bb0e-76eaaa4cf440', '3656cf1d-8826-404c-8f85-77f3e1f50464',
         '9d0b23cd-657b-4cc4-8258-a8cabb1f6847', 32000, 'USD', 31001, 'USD', 31001, 'ch-1234567893', 'Big Spender', 'Accepted',
         NOW() - INTERVAL '1 MIN', '2019-01-01'),
