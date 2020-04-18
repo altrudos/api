@@ -36,10 +36,14 @@ type Donation struct {
 }
 
 type Charity struct {
-	Name        string `json:"name"`
+	CountryCode string `json:"countryCode"`
 	Description string `json:"description"`
-	WebsiteUrl  string `json:"websiteUrl"`
 	Id          int    `json:"id"`
+	LogoUrl     string `db:"logo_url" json:"logo"`
+	Name        string `json:"name"`
+	Subtext     string `json:"subtext"`
+	Summary     string `json:"summary"`
+	WebsiteUrl  string `db:"website_url" json:"websiteUrl"`
 }
 
 type Params struct {

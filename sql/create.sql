@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS drives
     id                UUID PRIMARY KEY     DEFAULT uuid_generate_v4(),
     uri               TEXT        NOT NULL,
     amount            NUMERIC     NOT NULL DEFAULT 0,
-    created           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    created_at           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     source_url        TEXT,
     source_type       source_type,
     source_key        TEXT NOT NULL,
@@ -21,11 +21,14 @@ CREATE UNIQUE INDEX drives_source ON drives (source_type, source_key);
 CREATE TABLE IF NOT EXISTS charities
 (
     id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    country_code TEXT NOT NULL DEFAULT '',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     name          TEXT NOT NULL    DEFAULT '',
     logo_url      TEXT NOT NULL    DEFAULT '',
     website_url   TEXT NOT NULL    DEFAULT '',
     description   TEXT NOT NULL    DEFAULT '',
     summary       TEXT NOT NULL    DEFAULT '',
+    subtext       TEXT NOT NULL DEFAULT '',
     jg_charity_id BIGINT,
     feature_score INT  NOT NULL    DEFAULT 0
 );
@@ -37,7 +40,7 @@ CREATE TABLE IF NOT EXISTS donations
 (
     id                  UUID PRIMARY KEY         DEFAULT uuid_generate_v4(),
     charity_id          UUID REFERENCES charities (id),
-    created             TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
+    created_at             TIMESTAMPTZ     NOT NULL DEFAULT NOW(),
     drive_id            UUID REFERENCES drives (id),
     donor_amount        INT,
     donor_currency      TEXT,
@@ -57,7 +60,7 @@ CREATE INDEX donation_drive_id ON donations (drive_id);
 CREATE INDEX donation_donor_amount ON donations (donor_amount);
 CREATE INDEX donation_final_amount ON donations (final_amount);
 CREATE INDEX donation_usd_amount ON donations (usd_amount);
-CREATE INDEX donation_created ON donations (created);
+CREATE INDEX donation_created_at ON donations (created_at);
 
 CREATE TABLE IF NOT EXISTS search_cache
 (

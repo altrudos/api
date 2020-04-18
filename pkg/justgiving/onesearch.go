@@ -3,7 +3,6 @@ package justgiving
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -37,8 +36,6 @@ func ConvertSearchResultsToCharities(genericResults []*SearchResult) ([]*Charity
 		return nil, err
 	}
 
-	fmt.Println("marshal", string(j))
-
 	var list []*Charity
 	if err := json.Unmarshal(j, &list); err != nil {
 		return nil, err
@@ -63,8 +60,8 @@ func (jg *JustGiving) SearchCharitiesWithLimit(search string, limit int) (*Chari
 	params := &Params{
 		Path:   "v1/onesearch",
 		Method: http.MethodGet,
-		Query: qry,
-		Debug: jg.Debug,
+		Query:  qry,
+		Debug:  jg.Debug,
 	}
 
 	var response OneSearchResponse
@@ -92,4 +89,3 @@ func (jg *JustGiving) SearchCharitiesWithLimit(search string, limit int) (*Chari
 
 	return charityResult, nil
 }
-

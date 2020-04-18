@@ -2,6 +2,7 @@ package charityhonor
 
 import (
 	"errors"
+	"sort"
 	"strings"
 
 	"github.com/Masterminds/squirrel"
@@ -15,13 +16,15 @@ import (
 )
 
 type Charity struct {
+	CountryCode         string `db:"country_code"`
 	Description         string `db:"description"`
+	FeatureScore        int    `db:"feature_score"`
 	Id                  string `setmap:"omitinsert"`
 	JustGivingCharityId int    `db:"jg_charity_id"`
 	Name                string `db:"name"`
 	LogoUrl             string `db:"logo_url"`
+	Subtext             string `db:"subtext"`
 	WebsiteUrl          string `db:"website_url"`
-	Summary             string `db:"summary"`
 
 	// From View
 	MostRecentDonorAmount int      `db:"most_recent_donor_amount" setmap:"-"`
@@ -55,6 +58,10 @@ var (
 	CharityColumns = map[string]string{
 		"Name":                "name",
 		"Description":         "description",
+		"FeatureScore":        "feature_score",
+		"Subtext":             "subtext",
+		"LogoUrl":             "logo_url",
+		"CountryCode":         "country_code",
 		"JustGivingCharityId": "jg_charity_id",
 		"Id":                  "id",
 	}
@@ -74,8 +81,9 @@ func ConvertCharityError(err error) error {
 }
 
 func (c *Charity) Insert(ext sqlx.Ext) error {
+	smap := dbUtil.SetMap(c, true)
 	err := CharityInsertBuilder.
-		SetMap(dbUtil.SetMap(c, true)).
+		SetMap(smap).
 		Suffix(PqSuffixId).
 		RunWith(ext).
 		QueryRow().
@@ -128,11 +136,25 @@ func GetCharities(db sqlx.Queryer, cond *Cond) (xs []*Charity, err error) {
 	return
 }
 
+func GetCharity(db sqlx.Queryer, cond *Cond) (*Charity, error) {
+	var x Charity
+	err := GetForStruct(db, &x, ViewCharities, cond)
+	return &x, err
+}
+
 func GetCharitiesByJGId(db sqlx.Queryer, ids pq.Int64Array) ([]*Charity, error) {
 	cond := &Cond{
-		Where: squirrel.Expr("jg_charity_id=ANY(?)", ids),
+		Where:    squirrel.Expr("jg_charity_id=ANY(?)", ids),
+		OrderBys: []string{"feature_score DESC", "name ASC"},
 	}
 	return GetCharities(db, cond)
+}
+
+func GetCharityByJGId(db sqlx.Queryer, id int) (*Charity, error) {
+	cond := &Cond{
+		Where: squirrel.Expr("jg_charity_id=", id),
+	}
+	return GetCharity(db, cond)
 }
 
 func ConvertJGCharity(jgc *justgiving.Charity) *Charity {
@@ -149,4 +171,15 @@ func ConvertJGCharities(jgcs []*justgiving.Charity) []*Charity {
 		charities[i] = ConvertJGCharity(v)
 	}
 	return charities
+}
+
+func SortCharities(charities []*Charity) {
+	sort.Slice(charities, func(i, j int) bool {
+		a := charities[i]
+		b := charities[j]
+		if a.FeatureScore > b.FeatureScore {
+			return true
+		}
+		return a.Name < b.Name
+	})
 }
