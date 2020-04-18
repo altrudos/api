@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS charities
 (
     id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     country_code TEXT NOT NULL DEFAULT '',
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     name          TEXT NOT NULL    DEFAULT '',
     logo_url      TEXT NOT NULL    DEFAULT '',
     website_url   TEXT NOT NULL    DEFAULT '',

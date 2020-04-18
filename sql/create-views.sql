@@ -14,11 +14,11 @@ WITH sums AS (
                     OVER (PARTITION BY drive_id) AS most_recent_donor_amount,
                     LAST_VALUE(usd_amount)
                     OVER (PARTITION BY drive_id) AS most_recent_usd_amount,
-                    LAST_VALUE(created)
+                    LAST_VALUE(created_at)
                     OVER (PARTITION BY drive_id) AS most_recent_time
              FROM donations
              WHERE status = 'Accepted'
-             ORDER BY created ASC
+             ORDER BY created_at ASC
          ) T
     GROUP BY drive_id, most_recent_donor_amount, most_recent_usd_amount, most_recent_time
 )
@@ -47,11 +47,11 @@ WITH sums AS (
                     OVER (PARTITION BY charity_id) AS most_recent_donor_amount,
                     LAST_VALUE(usd_amount)
                     OVER (PARTITION BY charity_id) AS most_recent_usd_amount,
-                    LAST_VALUE(created)
+                    LAST_VALUE(created_at)
                     OVER (PARTITION BY charity_id) AS most_recent_time
              FROM donations
              WHERE status = 'Accepted'
-             ORDER BY created ASC
+             ORDER BY created_at ASC
          ) T
     GROUP BY charity_id, most_recent_donor_amount, most_recent_usd_amount, most_recent_time
 )
