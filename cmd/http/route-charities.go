@@ -10,6 +10,7 @@ import (
 	"github.com/lib/pq"
 
 	. "github.com/charityhonor/ch-api"
+	"github.com/charityhonor/ch-api/pkg/justgiving"
 )
 
 var (
@@ -34,6 +35,14 @@ func getCharities(c *RouteContext) {
 		getFeaturedCharities(c)
 		return
 	}
+	limit := 20
+	if c.Query.Get("limit") != "" {
+		var err error
+		limit, err = strconv.Atoi(c.Query.Get("limit"))
+		if err != nil {
+			limit = 20
+		}
+	}
 	var found bool
 	cacheItem, err := GetSearchItem(c.DB, search)
 	if err == nil && cacheItem != nil {
@@ -44,32 +53,53 @@ func getCharities(c *RouteContext) {
 		}
 	}
 	if !found {
-		resp, err := c.JG.SearchCharitiesWithLimit(search, 20)
-		if c.HandledError(err) {
+		resp, err := c.JG.SearchCharitiesWithLimit(search, limit)
+		if err != nil {
+			if err == justgiving.ErrGroupedResultsNot1 {
+				c.JSON(http.StatusOK, M{
+					"Charities": M{
+						"Data": []string{},
+					},
+				})
+				return
+			}
+			c.HandleError(err)
 			return
 		}
 		charities := make([]*Charity, 0, resp.Count)
 		ids := make(pq.Int64Array, 0, resp.Count)
+		// TODO: Batch these into one insert call
 		for _, d := range resp.Results {
-			charities = append(charities, &Charity{
-				Name:                d.Name,
+			newCharity := &Charity{
+				CountryCode:         d.CountryCode,
 				Description:         d.Description,
 				JustGivingCharityId: d.Id,
+				LogoUrl:             d.LogoUrl,
+				Subtext:             d.Subtext,
+				Name:                d.Name,
 				WebsiteUrl:          d.WebsiteUrl,
-			})
+			}
+
+			if err := newCharity.Insert(c.DB); err != nil && err != ErrDuplicateJGCharityId {
+				c.HandleError(err)
+				return
+			} else if err == ErrDuplicateJGCharityId {
+				newCharity, _ = GetCharityByJGId(c.DB, newCharity.JustGivingCharityId)
+			}
+
+			charities = append(charities, newCharity)
 			ids = append(ids, int64(d.Id))
 		}
+		// TODO: Sort these results
 		if err := CreateSearchCache(c.DB, search, ids); err != nil {
 			log.Print("Could not create search cache")
 		}
-		go func() {
-			for _, charity := range charities {
-				if err := charity.Insert(c.DB); err != nil && err != ErrDuplicateJGCharityId {
-					log.Print("Could not create charity for " + strconv.Itoa(charity.JustGivingCharityId))
-				}
-			}
-		}()
-		c.JSON(http.StatusOK, charities)
+		SortCharities(charities)
+		c.JSON(http.StatusOK, M{
+			"Charities": M{
+				"Data": charities,
+			},
+		})
 		return
 	}
 
@@ -77,7 +107,12 @@ func getCharities(c *RouteContext) {
 	if c.HandledError(err) {
 		return
 	}
-	c.JSON(http.StatusOK, charities)
+	SortCharities(charities)
+	c.JSON(http.StatusOK, M{
+		"Charities": M{
+			"Data": charities,
+		},
+	})
 }
 
 func getFeaturedCharities(c *RouteContext) {
