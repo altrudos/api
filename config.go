@@ -7,7 +7,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/charityhonor/ch-api/pkg/justgiving"
+	"github.com/altrudos/api/pkg/justgiving"
 )
 
 var (

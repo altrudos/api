@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 
-	. "github.com/charityhonor/ch-api"
+	. "github.com/altrudos/api"
 )
 
 type HttpError interface {

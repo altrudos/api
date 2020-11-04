@@ -9,7 +9,7 @@ import (
 
 	"github.com/cyc-ttn/gorouter"
 
-	. "github.com/charityhonor/ch-api"
+	. "github.com/altrudos/api"
 )
 
 var ErrNoConfig = errors.New("-config flag missing")

@@ -3,9 +3,9 @@ package charityhonor
 import (
 	"testing"
 
-	"github.com/charityhonor/ch-api/pkg/fixtures"
+	"github.com/altrudos/api/pkg/fixtures"
 
-	"github.com/charityhonor/ch-api/pkg/justgiving"
+	"github.com/altrudos/api/pkg/justgiving"
 )
 
 func TestGetCharity(t *testing.T) {

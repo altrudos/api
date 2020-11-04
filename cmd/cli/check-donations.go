@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 
-	. "github.com/charityhonor/ch-api"
+	. "github.com/altrudos/api"
 )
 
 func checkDonations(name string, args []string) error {

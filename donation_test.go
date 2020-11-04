@@ -1,14 +1,15 @@
 package charityhonor
 
 import (
+	vinscraper "github.com/Vindexus/go-scraper"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/charityhonor/ch-api/pkg/fixtures"
+	"github.com/altrudos/api/pkg/fixtures"
 
-	"github.com/charityhonor/ch-api/pkg/justgiving"
+	"github.com/altrudos/api/pkg/justgiving"
 	"github.com/jmoiron/sqlx"
 	. "github.com/monstercat/pgnull"
 )
@@ -21,7 +22,7 @@ func getDriveForTesting() (*Drive, *sqlx.Tx, *sqlx.DB) {
 	drive := &Drive{
 		SourceUrl:  "http://www.reddit.com/r/number" + strconv.Itoa(numTestDrives),
 		SourceKey:  "url" + strconv.Itoa(numTestDrives),
-		SourceType: STURL,
+		SourceType: vinscraper.SourceRedditPost,
 	}
 
 	tx, err := db.Beginx()

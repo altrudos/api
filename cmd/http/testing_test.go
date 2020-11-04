@@ -13,7 +13,7 @@ import (
 
 	"github.com/monstercat/golib/expectm"
 
-	. "github.com/charityhonor/ch-api"
+	. "github.com/altrudos/api"
 )
 
 var (

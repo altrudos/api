@@ -7,7 +7,7 @@ import (
 	"github.com/monstercat/pgnull"
 	errs "github.com/pkg/errors"
 
-	. "github.com/charityhonor/ch-api"
+	. "github.com/altrudos/api"
 )
 
 /**

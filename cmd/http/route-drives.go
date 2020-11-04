@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	. "github.com/charityhonor/ch-api"
+	. "github.com/altrudos/api"
 	"github.com/cyc-ttn/gorouter"
 )
 

@@ -1,6 +1,7 @@
 package charityhonor
 
 import (
+	vinscraper "github.com/Vindexus/go-scraper"
 	"testing"
 
 	"github.com/monstercat/golib/expectm"
@@ -9,7 +10,7 @@ import (
 func TestParseSourceURL(t *testing.T) {
 	type sourceTest struct {
 		URL          string
-		ExpectedType SourceType
+		ExpectedType string
 		ExpectedKey  string
 		Error        error
 		ExpectedMeta *expectm.ExpectedM
@@ -18,7 +19,7 @@ func TestParseSourceURL(t *testing.T) {
 	tests := []sourceTest{
 		{
 			URL:          "https://www.reddit.com/r/vancouver/comments/c78dd0/just_driving_the_wrong_way_on_a_highway_exit_with/",
-			ExpectedType: STRedditPost,
+			ExpectedType: vinscraper.SourceRedditPost,
 			ExpectedKey:  "c78dd0",
 			Error:        nil,
 			ExpectedMeta: &expectm.ExpectedM{
@@ -28,7 +29,7 @@ func TestParseSourceURL(t *testing.T) {
 		},
 		{
 			URL:          "https://np.reddit.com/r/pathofexile/comments/c6oy9e/to_everyone_that_feels_bored_by_the_game_or/esai27c/?context=3",
-			ExpectedType: STRedditComment,
+			ExpectedType: vinscraper.SourceRedditComment,
 			ExpectedKey:  "esai27c",
 			Error:        nil,
 			ExpectedMeta: &expectm.ExpectedM{
@@ -38,21 +39,21 @@ func TestParseSourceURL(t *testing.T) {
 		{
 			URL:          "https://www.reddit.com/about",
 			Error:        nil,
-			ExpectedType: STURL,
+			ExpectedType: vinscraper.SourceURL,
 			ExpectedKey:  "https://www.reddit.com/about",
 		},
 		{
 			URL:   "facebook colin",
-			Error: ErrSourceInvalidURL,
+			Error: vinscraper.ErrSourceInvalidURL,
 		},
 		{
 			URL:   "twitter.com/@whatever",
-			Error: ErrSourceInvalidURL,
+			Error: vinscraper.ErrSourceInvalidURL,
 		},
 		{
 			URL:          "http://twitter.com/@whatever",
 			Error:        nil,
-			ExpectedType: STURL,
+			ExpectedType: vinscraper.SourceURL,
 			ExpectedKey:  "http://twitter.com/@whatever",
 		},
 	}
@@ -70,17 +71,16 @@ func TestParseSourceURL(t *testing.T) {
 				continue
 			}
 		}
-		if source.GetType() != test.ExpectedType {
-			t.Errorf("[%d] Type should be %v, found %v", i, test.ExpectedType, source.GetType())
+		if source.Type != test.ExpectedType {
+			t.Errorf("[%d] Type should be %v, found %v", i, test.ExpectedType, source.Type)
 		}
-		if source.GetKey() != test.ExpectedKey {
-			t.Errorf("[%d] Key should be %v, found %v", i, test.ExpectedKey, source.GetKey())
+		if source.Key != test.ExpectedKey {
+			t.Errorf("[%d] Key should be %v, found %v", i, test.ExpectedKey, source.Key)
 		}
 		if test.ExpectedMeta != nil {
-			meta, err := source.GetMeta()
 			if err != nil {
 				t.Errorf("[%d] Error getting meta: %s", i, err)
-			} else if err := expectm.CheckJSON(meta, test.ExpectedMeta); err != nil {
+			} else if err := expectm.CheckJSON(source.Meta, test.ExpectedMeta); err != nil {
 				t.Errorf("[%d] %s", i, err)
 			}
 		}

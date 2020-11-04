@@ -27,10 +27,10 @@ type Drive struct {
 	Amount     int
 	Created    time.Time
 	Id         string     `setmap:"omitinsert"`
-	Source     Source     `db:"-"`
+	Source     *Source     `db:"-"`
 	SourceUrl  string     `db:"source_url"`
 	SourceKey  string     `db:"source_key"`
-	SourceType SourceType `db:"source_type"`
+	SourceType string `db:"source_type"`
 	SourceMeta FlatMap    `db:"source_meta"`
 	Uri        string
 
@@ -163,10 +163,10 @@ func GetDriveBySourceUrl(q sqlx.Queryer, url string) (*Drive, error) {
 	return GetDriveBySource(q, source)
 }
 
-func GetDriveBySource(q sqlx.Queryer, source Source) (*Drive, error) {
+func GetDriveBySource(q sqlx.Queryer, source *Source) (*Drive, error) {
 	eq := squirrel.Eq{
-		"source_type": source.GetType(),
-		"source_key":  source.GetKey(),
+		"source_type": source.Type,
+		"source_key":  source.Key,
 	}
 	return GetDrive(q, eq)
 }
@@ -175,15 +175,12 @@ func CreatedDriveBySourceUrl(ext sqlx.Ext, url string) (*Drive, error) {
 	if err != nil {
 		return nil, err
 	}
-	meta, err := source.GetMeta()
-	if err != nil {
-		return nil, err
-	}
+	meta := source.Meta
 	drive := &Drive{
 		Source:     source,
 		SourceUrl:  url,
-		SourceKey:  source.GetKey(),
-		SourceType: source.GetType(),
+		SourceKey:  source.Key,
+		SourceType: source.Type,
 		SourceMeta: meta,
 	}
 

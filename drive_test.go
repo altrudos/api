@@ -2,13 +2,14 @@ package charityhonor
 
 import (
 	"fmt"
+	vinscraper "github.com/Vindexus/go-scraper"
 	"testing"
 
 	"github.com/monstercat/pgnull"
 
 	"github.com/monstercat/golib/expectm"
 
-	"github.com/charityhonor/ch-api/pkg/fixtures"
+	"github.com/altrudos/api/pkg/fixtures"
 )
 
 func TestDriveSource(t *testing.T) {
@@ -47,7 +48,7 @@ func TestDriveInsert(t *testing.T) {
 
 	d := Drive{
 		SourceUrl:  "https://reddit.com/r/gaming",
-		SourceType: STURL,
+		SourceType: vinscraper.SourceURL,
 		SourceKey:  "rgaming",
 	}
 
@@ -77,7 +78,7 @@ func TestDriveSelect(t *testing.T) {
 	d := Drive{
 		SourceUrl:  source,
 		SourceKey:  "eshxtna",
-		SourceType: STRedditComment,
+		SourceType: vinscraper.SourceRedditComment,
 		Uri:        uri,
 	}
 	if err := d.Insert(db); err != nil {
@@ -90,7 +91,7 @@ func TestDriveSelect(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if drive.SourceType != STRedditComment {
+	if drive.SourceType != vinscraper.SourceRedditComment {
 		t.Error("Wrong source type")
 	}
 
@@ -149,7 +150,7 @@ func TestGetTopDrives(t *testing.T) {
 	// Create a new drive
 	drive := &Drive{
 		Uri:        "MadeUpNewDrive",
-		SourceType: STURL,
+		SourceType: vinscraper.SourceURL,
 	}
 	if err := drive.Create(db); err != nil {
 		t.Fatal(err)

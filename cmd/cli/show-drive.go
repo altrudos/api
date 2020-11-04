@@ -6,7 +6,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	. "github.com/charityhonor/ch-api"
+	. "github.com/altrudos/api"
 )
 
 func showDrive(name string, args []string) error {

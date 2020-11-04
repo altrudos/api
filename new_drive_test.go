@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/charityhonor/ch-api/pkg/fixtures"
+	"github.com/altrudos/api/pkg/fixtures"
 )
 
 func TestNewDrive(t *testing.T) {

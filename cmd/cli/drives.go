@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 
-	. "github.com/charityhonor/ch-api"
+	. "github.com/altrudos/api"
 
 	cmd "github.com/tmathews/commander"
 )

@@ -9,8 +9,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 
-	. "github.com/charityhonor/ch-api"
-	"github.com/charityhonor/ch-api/pkg/justgiving"
+	. "github.com/altrudos/api"
+	"github.com/altrudos/api/pkg/justgiving"
 )
 
 var (

@@ -1,81 +1,61 @@
 package charityhonor
 
 import (
+	"encoding/json"
 	"errors"
-	"net/url"
+	vinscraper "github.com/Vindexus/go-scraper"
 )
 
 var (
-	ErrSourceInvalidURL    = errors.New("Invalid URL provided")
 	ErrSourceInvalidReddit = errors.New("Unrecognized reddit link format")
 )
 
-type SourceType string
 
-var (
-	STRedditPost    SourceType = "reddit_post"
-	STRedditComment SourceType = "reddit_comment"
-	STURL           SourceType = "url" //For basically anything we don't know
-)
-
-type Source interface {
-	GetType() SourceType
-	GetKey() string
-	GetMeta() (FlatMap, error)
+type Source struct {
+	Type string
+	Key string
+	Meta FlatMap
 }
 
-type DefaultSource struct {
-	Type SourceType
-	URL  string
-	Meta M
-}
+func NewScraper() *vinscraper.Scraping {
+	return &vinscraper.Scraping{
+		// The order matters
+		Scrapers: []vinscraper.Scraper{
+			&vinscraper.RedditScraper{
+				UserAgent: "altrudos-1.0",
+			},
+			&vinscraper.ScraperGeneric{
 
-func (s *DefaultSource) String() string {
-	return s.URL
-}
-
-func (s *DefaultSource) GetType() SourceType {
-	return STURL
-}
-
-func (s *DefaultSource) GetKey() string {
-	return s.URL
-}
-
-func (s *DefaultSource) GetMeta() (FlatMap, error) {
-	// TODO: Fetch the page's HTML and look for page title and maybe og: tags
-	return FlatMap{
-		"url": s.URL,
-	}, nil
-}
-
-func NewDefaultSource(url string) *DefaultSource {
-	return &DefaultSource{
-		Type: STURL,
-		URL:  url,
+			},
+		},
+		TitleReplacers: []vinscraper.ScrapeReplacer{
+		},
 	}
 }
 
-/**
-* A URL for some content to be honored is turne			d into a "Source"
- * This normalizes different URLs whose structure we know points
- * to the same content.
- * youtu.be/1234 and youtube.com/watch?v=1234 => youtube:1234 (not yet implemented)
-*/
-func ParseSourceURL(urlStr string) (Source, error) {
-	u, err := url.Parse(urlStr)
+func ParseSourceURL(urlStr string) (*Source, error) {
+	scraper := NewScraper()
+
+	info, err := scraper.Scrape(urlStr)
 	if err != nil {
-		return nil, ErrSourceInvalidURL
+		return nil, err
 	}
 
-	host := u.Hostname()
-	if host == "" {
-		return nil, ErrSourceInvalidURL
+	// Conver the interface into a regular flatmap
+	meta := FlatMap{}
+	bytes, err := json.Marshal(info.Meta)
+	if err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(bytes, &meta); err != nil {
+		return nil, err
 	}
 
-	if IsRedditSource(urlStr) {
-		return ParseRedditSourceURL(urlStr)
+	s := Source{
+		Type: string(info.SourceType),
+		Key: info.SourceKey,
+		Meta: meta,
 	}
 
-	return NewDefaultSource(urlStr), nil
+	return &s, nil
 }

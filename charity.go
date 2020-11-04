@@ -10,7 +10,7 @@ import (
 	"github.com/monstercat/golib/db"
 	. "github.com/monstercat/pgnull"
 
-	"github.com/charityhonor/ch-api/pkg/justgiving"
+	"github.com/altrudos/api/pkg/justgiving"
 
 	"github.com/jmoiron/sqlx"
 )

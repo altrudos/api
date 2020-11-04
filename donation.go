@@ -16,7 +16,7 @@ import (
 
 	"github.com/monstercat/pgnull"
 
-	"github.com/charityhonor/ch-api/pkg/justgiving"
+	"github.com/altrudos/api/pkg/justgiving"
 	"github.com/jmoiron/sqlx"
 	"github.com/satori/go.uuid"
 )
@@ -225,7 +225,7 @@ func GetDonationsRecent(q sqlx.Queryer, ops *DonationOperators) ([]*Donation, er
 func (d *Donation) GenerateReferenceCode(ext sqlx.Ext) error {
 	exists := false
 	for d.ReferenceCode == "" || exists == true {
-		str := uuid.Must(uuid.NewV4()).String()
+		str := uuid.NewV4().String()
 		str = fmt.Sprintf("ch-%d", time.Now().UnixNano())
 		d.ReferenceCode = str
 		dupe, err := GetDonationByReferenceCode(ext, d.ReferenceCode)

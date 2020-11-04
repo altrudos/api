@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/charityhonor/ch-api/pkg/fixtures"
+	"github.com/altrudos/api/pkg/fixtures"
 
-	. "github.com/charityhonor/ch-api"
+	. "github.com/altrudos/api"
 
 	"github.com/monstercat/golib/expectm"
 )
