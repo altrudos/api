@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"testing"
 
 	"github.com/cyc-ttn/gorouter"
 
@@ -64,4 +65,13 @@ func CheckResponseBody(r io.Reader, m *expectm.ExpectedM) error {
 		return err
 	}
 	return expectm.CheckJSONBytes(byt, m)
+}
+
+func logBody(r io.Reader, t *testing.T) {
+	byt, err := ioutil.ReadAll(r)
+	if err != nil {
+		t.Fatal(err)
+		return
+	}
+	t.Log(string(byt))
 }

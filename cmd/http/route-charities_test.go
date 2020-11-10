@@ -41,6 +41,8 @@ func TestGetCharity(t *testing.T) {
 		t.Fatal(err)
 	}
 	if resp.StatusCode != http.StatusOK {
+		t.Log(resp.StatusCode)
+		logBody(resp.Body, t)
 		t.Fatal("Should be status ok")
 	}
 

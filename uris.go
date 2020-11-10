@@ -1,4 +1,4 @@
-package charityhonor
+package altrudos
 
 import (
 	"math/rand"

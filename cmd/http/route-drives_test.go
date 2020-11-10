@@ -1,12 +1,13 @@
 package main
 
 import (
+	vinscraper "github.com/Vindexus/go-scraper"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"testing"
 
-	"github.com/altrudos/api"
+	altrudos "github.com/altrudos/api"
 	"github.com/altrudos/api/pkg/fixtures"
 
 	"github.com/monstercat/golib/expectm"
@@ -118,71 +119,71 @@ func TestCreateDrive(t *testing.T) {
 			Payload:        nil,
 			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
-				"RawError": charityhonor.ErrSourceInvalidURL.Error(),
+				"RawError": vinscraper.ErrSourceInvalidURL.Error(),
 			},
 		},
 		{
-			Payload: charityhonor.FlatMap{
+			Payload: altrudos.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
 			},
 			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
-				"RawError": charityhonor.ErrNilDonation.Error(),
+				"RawError": altrudos.ErrNilDonation.Error(),
 			},
 		},
 		{
-			Payload: charityhonor.FlatMap{
+			Payload: altrudos.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
-				"SubmittedDonation": charityhonor.M{
+				"SubmittedDonation": altrudos.M{
 					"Amount": "twenty bucks",
 				},
 			},
 			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
-				"RawError": charityhonor.ErrInvalidAmount.Error(),
+				"RawError": altrudos.ErrInvalidAmount.Error(),
 			},
 		},
 		{
-			Payload: charityhonor.FlatMap{
+			Payload: altrudos.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
-				"SubmittedDonation": charityhonor.M{
+				"SubmittedDonation": altrudos.M{
 					"Amount": "-100.50",
 				},
 			},
 			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
-				"RawError": charityhonor.ErrNegativeAmount.Error(),
+				"RawError": altrudos.ErrNegativeAmount.Error(),
 			},
 		},
 		{
-			Payload: charityhonor.FlatMap{
+			Payload: altrudos.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
-				"SubmittedDonation": charityhonor.M{
+				"SubmittedDonation": altrudos.M{
 					"Amount": "100.50",
 				},
 			},
 			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
-				"RawError": charityhonor.ErrNoCharity.Error(),
+				"RawError": altrudos.ErrNoCharity.Error(),
 			},
 		},
 		{
-			Payload: charityhonor.FlatMap{
+			Payload: altrudos.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
-				"SubmittedDonation": charityhonor.M{
+				"SubmittedDonation": altrudos.M{
 					"CharityId": fixtures.CharityId1,
 					"Amount":    "100.50",
 				},
 			},
 			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
-				"RawError": charityhonor.ErrInvalidCurrency.Error(),
+				"RawError": altrudos.ErrInvalidCurrency.Error(),
 			},
 		},
 		{
-			Payload: charityhonor.FlatMap{
+			Payload: altrudos.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
-				"SubmittedDonation": charityhonor.M{
+				"SubmittedDonation": altrudos.M{
 					"CharityId": fixtures.CharityId1,
 					"Amount":    "100.50",
 					"Currency":  "fjdksalfjdsla",
@@ -190,13 +191,13 @@ func TestCreateDrive(t *testing.T) {
 			},
 			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
-				"RawError": charityhonor.ErrInvalidCurrency.Error(),
+				"RawError": altrudos.ErrInvalidCurrency.Error(),
 			},
 		},
 		{
-			Payload: charityhonor.FlatMap{
+			Payload: altrudos.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
-				"SubmittedDonation": charityhonor.M{
+				"SubmittedDonation": altrudos.M{
 					"CharityId": fixtures.CharityId1,
 					"Amount":    "100.50",
 					"Currency":  "eur",
@@ -205,9 +206,9 @@ func TestCreateDrive(t *testing.T) {
 			ExpectedStatus: http.StatusOK,
 		},
 		{
-			Payload: charityhonor.FlatMap{
+			Payload: altrudos.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
-				"SubmittedDonation": charityhonor.M{
+				"SubmittedDonation": altrudos.M{
 					"CharityId": fixtures.CharityId1,
 					"Amount":    "100.50",
 					"Currency":  "eur",
@@ -235,9 +236,9 @@ func TestCreateDrive(t *testing.T) {
 		}
 	}
 
-	db := charityhonor.GetTestDb()
+	db := altrudos.GetTestDb()
 
-	dono, err := charityhonor.GetDonationByField(db, "donor_name", "Elder")
+	dono, err := altrudos.GetDonationByField(db, "donor_name", "Elder")
 	if err != nil {
 		t.Error(err)
 	}
@@ -246,12 +247,12 @@ func TestCreateDrive(t *testing.T) {
 	}
 
 	// Cleanup
-	_, err = db.Exec("DELETE FROM " + charityhonor.TableDonations + " WHERE donor_amount = 10050 AND donor_currency = 'EUR'")
+	_, err = db.Exec("DELETE FROM " + altrudos.TableDonations + " WHERE donor_amount = 10050 AND donor_currency = 'EUR'")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, err = db.Exec("DELETE FROM "+charityhonor.TableDrives+" WHERE source_key = $1", "fmgtyqq")
+	_, err = db.Exec("DELETE FROM "+altrudos.TableDrives+" WHERE source_key = $1", "fmgtyqq")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -270,53 +271,53 @@ func TestCreateDriveDonation(t *testing.T) {
 
 	tests := []test{
 		{
-			Payload: charityhonor.FlatMap{
-				"SubmittedDonation": charityhonor.M{
+			Payload: altrudos.FlatMap{
+				"SubmittedDonation": altrudos.M{
 					"Amount": "twenty bucks",
 				},
 			},
 			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
-				"RawError": charityhonor.ErrInvalidAmount.Error(),
+				"RawError": altrudos.ErrInvalidAmount.Error(),
 			},
 		},
 		{
-			Payload: charityhonor.FlatMap{
-				"SubmittedDonation": charityhonor.M{
+			Payload: altrudos.FlatMap{
+				"SubmittedDonation": altrudos.M{
 					"Amount": "-100.50",
 				},
 			},
 			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
-				"RawError": charityhonor.ErrNegativeAmount.Error(),
+				"RawError": altrudos.ErrNegativeAmount.Error(),
 			},
 		},
 		{
-			Payload: charityhonor.FlatMap{
-				"SubmittedDonation": charityhonor.M{
+			Payload: altrudos.FlatMap{
+				"SubmittedDonation": altrudos.M{
 					"Amount": "100.50",
 				},
 			},
 			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
-				"RawError": charityhonor.ErrNoCharity.Error(),
+				"RawError": altrudos.ErrNoCharity.Error(),
 			},
 		},
 		{
-			Payload: charityhonor.FlatMap{
-				"SubmittedDonation": charityhonor.M{
+			Payload: altrudos.FlatMap{
+				"SubmittedDonation": altrudos.M{
 					"CharityId": fixtures.CharityId1,
 					"Amount":    "100.50",
 				},
 			},
 			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
-				"RawError": charityhonor.ErrInvalidCurrency.Error(),
+				"RawError": altrudos.ErrInvalidCurrency.Error(),
 			},
 		},
 		{
-			Payload: charityhonor.FlatMap{
-				"SubmittedDonation": charityhonor.M{
+			Payload: altrudos.FlatMap{
+				"SubmittedDonation": altrudos.M{
 					"CharityId": fixtures.CharityId1,
 					"Amount":    "100.50",
 					"Currency":  "fjdksalfjdsla",
@@ -324,12 +325,12 @@ func TestCreateDriveDonation(t *testing.T) {
 			},
 			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
-				"RawError": charityhonor.ErrInvalidCurrency.Error(),
+				"RawError": altrudos.ErrInvalidCurrency.Error(),
 			},
 		},
 		{
-			Payload: charityhonor.FlatMap{
-				"SubmittedDonation": charityhonor.M{
+			Payload: altrudos.FlatMap{
+				"SubmittedDonation": altrudos.M{
 					"CharityId": fixtures.CharityId1,
 					"Amount":    "100.87",
 					"Currency":  "eur",
@@ -338,8 +339,8 @@ func TestCreateDriveDonation(t *testing.T) {
 			ExpectedStatus: http.StatusOK,
 		},
 		{
-			Payload: charityhonor.FlatMap{
-				"SubmittedDonation": charityhonor.M{
+			Payload: altrudos.FlatMap{
+				"SubmittedDonation": altrudos.M{
 					"CharityId": fixtures.CharityId1,
 					"Amount":    "100.87",
 					"Currency":  "eur",
@@ -367,9 +368,9 @@ func TestCreateDriveDonation(t *testing.T) {
 		}
 	}
 
-	db := charityhonor.GetTestDb()
+	db := altrudos.GetTestDb()
 	// Should find one with name
-	dono, err := charityhonor.GetDonationByField(db, "donor_name", "Shaper")
+	dono, err := altrudos.GetDonationByField(db, "donor_name", "Shaper")
 	if err != nil {
 		t.Error(err)
 	}
@@ -378,7 +379,7 @@ func TestCreateDriveDonation(t *testing.T) {
 	}
 
 	// Cleanup
-	_, err = db.Exec("DELETE FROM " + charityhonor.TableDonations + " WHERE donor_amount = 10087 AND donor_currency = 'EUR'")
+	_, err = db.Exec("DELETE FROM " + altrudos.TableDonations + " WHERE donor_amount = 10087 AND donor_currency = 'EUR'")
 	if err != nil {
 		t.Fatal(err)
 	}

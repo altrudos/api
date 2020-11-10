@@ -75,11 +75,11 @@ func TestSearchCharities(t *testing.T) {
 	jg.Mode = ModeProduction
 	jg.Debug = true
 	result, err := jg.SearchCharities("fjdkslfjdskalfjdskafjdsa")
-	if err != nil {
+	if err != ErrGroupedResultsNot1 {
 		t.Fatal(err)
 	}
 
-	if result.Count > 0 {
+	if err == nil && result.Count > 0 {
 		t.Errorf("Expected 0 charities found for gibberish search, found %d\n", result.Count)
 	}
 
@@ -88,8 +88,8 @@ func TestSearchCharities(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if result.Count != 3 {
-		t.Errorf("Expected a count of 3 but found %d\n", result.Count)
+	if result.Count != 4 {
+		t.Errorf("Expected a count of 4 but found %d\n", result.Count)
 	}
 
 	charities := result.Results

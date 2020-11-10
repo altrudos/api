@@ -1,4 +1,4 @@
-package charityhonor
+package altrudos
 
 import (
 	"database/sql"
@@ -25,7 +25,7 @@ var (
 
 type Drive struct {
 	Amount     int
-	Created    time.Time
+	CreatedAt  time.Time `db:"created_at"`
 	Id         string     `setmap:"omitinsert"`
 	Source     *Source     `db:"-"`
 	SourceUrl  string     `db:"source_url"`
@@ -200,7 +200,7 @@ func (d *Drive) Create(ext sqlx.Ext) error {
 			return err
 		}
 	}
-	d.Created = time.Now()
+	d.CreatedAt = time.Now()
 	return d.Insert(ext)
 }
 

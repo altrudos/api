@@ -1,4 +1,4 @@
-package charityhonor
+package altrudos
 
 import (
 	vinscraper "github.com/Vindexus/go-scraper"

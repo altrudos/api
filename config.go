@@ -1,7 +1,9 @@
-package charityhonor
+package altrudos
 
 import (
 	"errors"
+	"fmt"
+	errs "github.com/pkg/errors"
 	"os"
 
 	"github.com/BurntSushi/toml"
@@ -12,6 +14,7 @@ import (
 
 var (
 	ErrInvalidJGMode = errors.New("invalid justgiving mode")
+	ErrBlankConfigFilePath = errors.New("config file path is blank, check your env vars")
 )
 
 type Config struct {
@@ -56,6 +59,9 @@ func MustGetConfig(confFile string) *Config {
 }
 
 func ParseConfig(confFile string) (*Config, error) {
+	if confFile == "" {
+		return nil, ErrBlankConfigFilePath
+	}
 	f, err := os.Open(confFile)
 	if err != nil {
 		return nil, err
@@ -64,7 +70,7 @@ func ParseConfig(confFile string) (*Config, error) {
 
 	var conf Config
 	if _, err := toml.DecodeReader(f, &conf); err != nil {
-		return nil, err
+		return nil, errs.Wrap(err, fmt.Sprintf("Filepath: '%s'", confFile))
 	}
 	return &conf, nil
 }

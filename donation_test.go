@@ -1,4 +1,4 @@
-package charityhonor
+package altrudos
 
 import (
 	vinscraper "github.com/Vindexus/go-scraper"
@@ -218,7 +218,7 @@ func TestDonationChecking(t *testing.T) {
 
 	dono.ReferenceCode = "nonexistantcode"
 	dono.Status = DonationPending
-	dono.Created = time.Now().Add(DonationCheckExpiration * -2)
+	dono.CreatedAt = time.Now().Add(DonationCheckExpiration * -2)
 
 	err = dono.CheckStatus(tx, jg)
 	if err != nil {

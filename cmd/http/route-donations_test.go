@@ -52,7 +52,7 @@ func TestCheckDonation(t *testing.T) {
 		}
 	}
 
-	_, err = CallJson(ts, http.MethodGet, "/donations/check/"+donation.ReferenceCode, nil)
+	res, err := CallJson(ts, http.MethodGet, "/donations/check/"+donation.ReferenceCode, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,6 +67,7 @@ func TestCheckDonation(t *testing.T) {
 		t.Fatal(err)
 	}
 	if donation.Status != DonationAccepted {
+		logBody(res.Body, t)
 		t.Errorf("Expected status Accepted but got %s", donation.Status)
 	}
 

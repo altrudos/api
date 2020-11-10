@@ -71,5 +71,5 @@ func printDonation(v *Donation) {
 	if v.IsAnonymous() {
 		name = gray(name)
 	}
-	Pls("$%s from %s at %s", v.AmountString(), name, v.Created.Format(time.RFC1123))
+	Pls("$%s from %s at %s", v.AmountString(), name, v.CreatedAt.Format(time.RFC1123))
 }

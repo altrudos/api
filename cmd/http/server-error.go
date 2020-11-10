@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	vinscraper "github.com/Vindexus/go-scraper"
 	"net/http"
 
 	. "github.com/altrudos/api"
@@ -73,7 +74,7 @@ var ErrorMap = map[error]RouteError{
 		Code:    http.StatusNotFound,
 		Message: "Not found",
 	},
-	ErrSourceInvalidURL: {
+	vinscraper.ErrSourceInvalidURL: {
 		Code:    http.StatusBadRequest,
 		Message: "Invalid source URL provided.",
 	},

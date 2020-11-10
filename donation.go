@@ -1,4 +1,4 @@
-package charityhonor
+package altrudos
 
 import (
 	"database/sql"
@@ -55,7 +55,7 @@ var (
 	DonationColumns = map[string]string{
 		"Id":                "id",
 		"CharityId":         "charity_id",
-		"Created":           "created",
+		"CreatedAt":         "created_at",
 		"DonorAmount":       "donor_amount",
 		"DonorCurrentyCode": "donor_currency",
 		"DonorName":         "donor_name",
@@ -97,7 +97,7 @@ type DonationStatus string
 type Donation struct {
 	Charity       *Charity `db:"-"`
 	CharityId     string   `db:"charity_id"`
-	Created       time.Time
+	CreatedAt     time.Time `db:"created_at"`
 	DonorAmount   int               `db:"donor_amount"`   // What the donor typed in
 	DonorCurrency string            `db:"donor_currency"` // What the donor selected
 	DonorName     pgnull.NullString `db:"donor_name"`
@@ -208,7 +208,7 @@ func GetDonationsRecent(q sqlx.Queryer, ops *DonationOperators) ([]*Donation, er
 		Select(columns...).
 		From(ViewDonations).
 		Where("status = ?", DonationAccepted).
-		OrderBy("created DESC")
+		OrderBy("created_at DESC")
 
 	donations, err := QueryDonations(q, &query)
 
@@ -272,7 +272,7 @@ func (d *Donation) Create(ext sqlx.Ext) error {
 		d.Status = DonationPending
 	}
 
-	d.Created = time.Now()
+	d.CreatedAt = time.Now()
 	return d.Insert(ext)
 }
 
@@ -294,7 +294,7 @@ func (d *Donation) ShouldReject() bool {
 	if d.Status != DonationPending {
 		return false
 	}
-	return d.Created.Before(time.Now().Add(DonationCheckExpiration * -1))
+	return d.CreatedAt.Before(time.Now().Add(DonationCheckExpiration * -1))
 }
 
 //Raw insert into db
