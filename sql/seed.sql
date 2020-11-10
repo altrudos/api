@@ -10,7 +10,7 @@ VALUES ('9d0b23cd-657b-4cc4-8258-a8cabb1f6847', 'The Demo Charity',
         'This charity is a fake one used for testing. It provides free water to other fake test data.', '', 2051, 2);
 
 INSERT INTO donations (id, drive_id, charity_id, donor_amount, donor_currency, final_amount, final_currency, usd_amount, reference_code,
-                       donor_name, status, created, next_check)
+                       donor_name, status, created_at, next_check)
 VALUES ('b17f0a2d-8de6-4009-8efa-9aca898338c3', '3656cf1d-8826-404c-8f85-77f3e1f50464',
         '9d0b23cd-657b-4cc4-8258-a8cabb1f6847', 1000, 'USD', 98, 'USD', 98, 'ch-1586573040421095000', '', 'Pending', NOW(), NOW()),
        ('3cd425a8-c376-4352-b5c6-8ebec5e1d8fe', '3656cf1d-8826-404c-8f85-77f3e1f50464',

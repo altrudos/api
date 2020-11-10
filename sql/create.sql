@@ -21,16 +21,19 @@ CREATE UNIQUE INDEX drives_source ON drives (source_type, source_key);
 CREATE TABLE IF NOT EXISTS charities
 (
     id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+
     country_code TEXT NOT NULL DEFAULT '',
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    name          TEXT NOT NULL    DEFAULT '',
-    logo_url      TEXT NOT NULL    DEFAULT '',
-    website_url   TEXT NOT NULL    DEFAULT '',
     description   TEXT NOT NULL    DEFAULT '',
-    summary       TEXT NOT NULL    DEFAULT '',
-    subtext       TEXT NOT NULL DEFAULT '',
+    feature_score INT  NOT NULL    DEFAULT 0,
     jg_charity_id BIGINT,
-    feature_score INT  NOT NULL    DEFAULT 0
+    logo_url      TEXT NOT NULL    DEFAULT '',
+    name          TEXT NOT NULL    DEFAULT '',
+    subtext       TEXT NOT NULL DEFAULT '',
+    summary       TEXT NOT NULL    DEFAULT '',
+    website_url   TEXT NOT NULL    DEFAULT '',
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE UNIQUE INDEX charities_jg_charity_id_unique ON charities (jg_charity_id);
 
