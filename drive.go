@@ -7,9 +7,8 @@ import (
 
 	"github.com/Masterminds/squirrel"
 
-	"github.com/monstercat/golib/db"
-
 	"github.com/jmoiron/sqlx"
+	dbUtil "github.com/monstercat/golib/db"
 	. "github.com/monstercat/pgnull"
 )
 
@@ -26,12 +25,12 @@ var (
 type Drive struct {
 	Amount     int
 	CreatedAt  time.Time `db:"created_at"`
-	Id         string     `setmap:"omitinsert"`
-	Source     *Source     `db:"-"`
-	SourceUrl  string     `db:"source_url"`
-	SourceKey  string     `db:"source_key"`
-	SourceType string `db:"source_type"`
-	SourceMeta FlatMap    `db:"source_meta"`
+	Id         string    `setmap:"omitinsert"`
+	Source     *Source   `db:"-"`
+	SourceUrl  string    `db:"source_url"`
+	SourceKey  string    `db:"source_key"`
+	SourceType string    `db:"source_type"`
+	SourceMeta FlatMap   `db:"source_meta"`
 	Uri        string
 
 	// From View
@@ -78,7 +77,7 @@ func GetTopDrives(db sqlx.Queryer) ([]*DriveTallied, error) {
 	qry := QueryBuilder.Select("dr.*, sq.top_amount, sq.top_num_donations").
 		From(`(SELECT SUM(usd_amount) as top_amount, COUNT(*) as top_num_donations, drive_id
 		FROM ` + ViewDonations + ` dono
-		WHERE dono.created >= NOW() - INTERVAL '7 DAYS' 
+		WHERE dono.created_at >= NOW() - INTERVAL '7 DAYS' 
 		AND dono.status = 'Accepted'
 		GROUP BY drive_id) sq`).
 		Join(ViewDrives + " dr ON dr.id = sq.drive_id").
@@ -126,7 +125,7 @@ func GetDriveRecentDonations(db sqlx.Queryer, cId string, num int) ([]*Donation,
 			"drive_id": cId,
 			"status":   DonationAccepted,
 		},
-		OrderBys: []string{"created DESC"},
+		OrderBys: []string{"created_at DESC"},
 		Limit:    num,
 	}
 	if err := SelectForStruct(db, &xs, ViewDonations, cond); err != nil {
@@ -257,7 +256,7 @@ func (d *Drive) GetTopDonations(q sqlx.Queryer, limit int) ([]*Donation, error) 
 
 func (d *Drive) GetRecentDonations(q sqlx.Queryer, limit int) ([]*Donation, error) {
 	query := d.ApprovedDonations(q, limit)
-	*query = query.OrderBy("created DESC")
+	*query = query.OrderBy("created_at DESC")
 
 	return QueryDonations(q, query)
 }

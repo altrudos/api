@@ -56,12 +56,12 @@ func TestCheckDonation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	/*
-		if resp.StatusCode != http.StatusTemporaryRedirect {
-			t.Error(respBody(resp.Body))
-			t.Error("Should be status ok got", resp.StatusCode)
-		}
-	*/
+
+	/*	if res.StatusCode != http.StatusTemporaryRedirect {
+		t.Error(respBody(res.Body))
+		t.Error("Should be status ok got", res.StatusCode)
+	}*/
+
 	donation, err = GetDonationById(db, fixtures.DonationId1)
 	if err != nil {
 		t.Fatal(err)

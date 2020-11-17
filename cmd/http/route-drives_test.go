@@ -1,11 +1,12 @@
 package main
 
 import (
-	vinscraper "github.com/Vindexus/go-scraper"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"testing"
+
+	vinscraper "github.com/Vindexus/go-scraper"
 
 	altrudos "github.com/altrudos/api"
 	"github.com/altrudos/api/pkg/fixtures"
@@ -63,7 +64,7 @@ func TestGetTopDrives(t *testing.T) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		//t.Error(respBody(resp.Body))
+		t.Error(respBody(resp.Body))
 		t.Error("Should be status ok but got", resp.StatusCode)
 	}
 

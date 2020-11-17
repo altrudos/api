@@ -101,6 +101,10 @@ func (jg *JustGiving) Request(params *Params, send interface{}, receive interfac
 		return errors.New("No AppId found in JustGiving")
 	}
 
+	if jg.AppId == "some-example-id" {
+		return errors.New("AppId in your config is still the example value")
+	}
+
 	if jg.Mode == "" {
 		return errors.New("No mode set. Must be either staging or production")
 	}
@@ -182,6 +186,7 @@ func (jg *JustGiving) GetDonationByReference(reference string) (*Donation, error
 	var resp Response
 	err := jg.Request(params, nil, &resp)
 	if err != nil {
+		fmt.Println("err!", err, params.Body)
 		return nil, err
 	}
 

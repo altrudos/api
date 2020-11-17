@@ -1,13 +1,11 @@
 package altrudos
 
 import (
-	"fmt"
 	"github.com/jmoiron/sqlx"
 )
 
 func MustGetTestConfig() *Config {
 	filepath := GetEnv("TESTCONFIG", "config_test.toml")
-	fmt.Println("filepath", filepath)
 	c, err := ParseConfig(filepath)
 	if err != nil {
 		panic(err)
