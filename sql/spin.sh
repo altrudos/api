@@ -9,3 +9,4 @@ PGPASSWORD=$pw psql -h $host -f drop.sql -U $user $db
 PGPASSWORD=$pw psql -h $host -f create.sql -U $user $db
 PGPASSWORD=$pw psql -h $host -f create-views.sql -U $user $db
 PGPASSWORD=$pw psql -h $host -f seed.sql -U $user $db
+$SHELL

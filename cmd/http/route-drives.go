@@ -46,6 +46,10 @@ func getDrive(c *RouteContext) {
 	if c.HandledError(err) {
 		return
 	}
+	if drive == nil {
+		c.HandleError(ErrNotFound)
+		return
+	}
 	topDonations, err := GetDriveTopDonations(c.DB, drive.Id, 10)
 	if c.HandledError(err) {
 		return
