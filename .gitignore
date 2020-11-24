@@ -5,4 +5,7 @@ api.iml
 .idea
 config.toml
 config_test.toml
+config_dev.toml
 *.iml
+*.exe
+cmd/http/deploy.sh
