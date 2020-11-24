@@ -5,12 +5,13 @@ go 1.14
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Masterminds/squirrel v1.4.0
+	github.com/Vindexus/go-router-test v0.0.0-00010101000000-000000000000
 	github.com/Vindexus/go-scraper v0.0.0-20201103231651-83306f23e84b
 	github.com/cyc-ttn/gorouter v0.0.0-20200507200123-e696575c3f73
 	github.com/gookit/color v1.3.2
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.8.0
-	github.com/monstercat/golib v0.0.0-20201109195614-7ff748c92660
+	github.com/monstercat/golib v0.0.0-20201116205841-05b40e6eb8b4
 	github.com/monstercat/pgnull v0.0.0-20200603220842-491e6980e3eb
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/pkg/errors v0.9.1
@@ -22,3 +23,5 @@ require (
 )
 
 replace github.com/Vindexus/go-scraper => C:\Users\Vindexus\go\src\github.com\Vindexus\go-scraper
+
+replace github.com/Vindexus/go-router-test => C:\Users\Vindexus\go\src\github.com\Vindexus\go-router-test

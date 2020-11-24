@@ -1,7 +1,7 @@
-INSERT INTO drives (id, source_url, source_type, source_key, source_meta, uri, amount)
-VALUES ('3656cf1d-8826-404c-8f85-77f3e1f50464', 'https://www.reddit.com/r/PublicFreakout/comments/fnnujk/ny_not_handling_this_shit_well/flbfd1j/', 'reddit_comment', 'flbfd1j', '{"subreddit": "PublicFreakout", "author": "BRuX-", "title": "NY not handling this shit well"}', 'PrettyPinkMoon', 0),
-('edfa5906-303f-4a5c-941c-0006d604cf28', 'https://www.reddit.com/r/PublicFreakout/comments/fnnujk/ny_not_handling_this_shit_well/', 'reddit_post', 'fnnujk', '{"subreddit": "PublicFreakout", "author": "BRuX-", "title": "NY not handling this shit well"}', 'PrettyRedMoon', 0),
-('1181e5c7-c82c-424e-b1ef-b13f61d616dc', 'https://gist.github.com/ThaumRystra/ffb264dea8c32e15de95f775596194a4', 'url', 'https://gist.github.com/ThaumRystra/ffb264dea8c32e15de95f775596194a4', '{}', 'LargeBearFire', 0);
+INSERT INTO drives (id, source_url, source_type, source_key, source_meta, uri, amount, created_at)
+VALUES ('3656cf1d-8826-404c-8f85-77f3e1f50464', 'https://www.reddit.com/r/PublicFreakout/comments/fnnujk/ny_not_handling_this_shit_well/flbfd1j/', 'reddit_comment', 'flbfd1j', '{"subreddit": "PublicFreakout", "author": "BRuX-", "title": "NY not handling this shit well"}', 'PrettyPinkMoon', 0, NOW()- INTERVAL '10 DAYS'),
+('edfa5906-303f-4a5c-941c-0006d604cf28', 'https://www.reddit.com/r/PublicFreakout/comments/fnnujk/ny_not_handling_this_shit_well/', 'reddit_post', 'fnnujk', '{"subreddit": "PublicFreakout", "author": "BRuX-", "title": "NY not handling this shit well"}', 'PrettyRedMoon', 0, NOW()- INTERVAL '3 DAYS'),
+('1181e5c7-c82c-424e-b1ef-b13f61d616dc', 'https://gist.github.com/ThaumRystra/ffb264dea8c32e15de95f775596194a4', 'url', 'https://gist.github.com/ThaumRystra/ffb264dea8c32e15de95f775596194a4', '{}', 'LargeBearFire', 0, NOW()- INTERVAL '1 DAY');
 
 INSERT INTO charities (id, name, logo_url, description, summary, jg_charity_id, feature_score)
 VALUES ('9d0b23cd-657b-4cc4-8258-a8cabb1f6847', 'The Demo Charity',

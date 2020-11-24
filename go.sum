@@ -161,6 +161,8 @@ github.com/monstercat/golib v0.0.0-20201102215708-e439ed653e22 h1:N2gwPzWBC4Aqrs
 github.com/monstercat/golib v0.0.0-20201102215708-e439ed653e22/go.mod h1:3HjaTKAzu3NcLvEM1CppdM6S9fKrPKoAPZe+zPQ31Co=
 github.com/monstercat/golib v0.0.0-20201109195614-7ff748c92660 h1:kOG2CiQ/ukggtY2uPNKFG8rg91zShXHqYmiqGlA+Owc=
 github.com/monstercat/golib v0.0.0-20201109195614-7ff748c92660/go.mod h1:3HjaTKAzu3NcLvEM1CppdM6S9fKrPKoAPZe+zPQ31Co=
+github.com/monstercat/golib v0.0.0-20201116205841-05b40e6eb8b4 h1:QoG5MfD8OlTIdKOVi5WZgiftEhMRYqtmvsAIoxAD3rs=
+github.com/monstercat/golib v0.0.0-20201116205841-05b40e6eb8b4/go.mod h1:3HjaTKAzu3NcLvEM1CppdM6S9fKrPKoAPZe+zPQ31Co=
 github.com/monstercat/pgnull v0.0.0-20200603220842-491e6980e3eb h1:LVIwCLd9ZRv4J2mUTA80VlgVm45wtYiB7TEBwOyxXMY=
 github.com/monstercat/pgnull v0.0.0-20200603220842-491e6980e3eb/go.mod h1:IYp75mEmV78iUOnuw3STlU569h9NrxqtHV5fNHw/Pnw=
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
