@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	. "github.com/altrudos/api"
@@ -68,6 +69,7 @@ func getDrive(c *RouteContext) {
 func createDrive(c *RouteContext) {
 	var nd NewDrive
 	if err := c.ShouldBindJSON(&nd); c.HandledError(err) {
+		fmt.Println("err bind")
 		return
 	}
 

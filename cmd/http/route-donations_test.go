@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"testing"
 
+	grtest "github.com/Vindexus/go-router-test"
+
 	"github.com/altrudos/api/pkg/fixtures"
 
 	. "github.com/altrudos/api"
@@ -12,34 +14,24 @@ import (
 )
 
 func TestGetDonationsRecent(t *testing.T) {
-	ts, _ := MustGetTestServer(DonationRoutes...)
-
-	resp, err := CallJson(ts, http.MethodGet, "/donations/recent", nil)
-	if err != nil {
-		t.Fatal(err)
+	test := &grtest.RouteTest{
+		Path:           "/donations/recent",
+		ExpectedStatus: http.StatusOK,
+		ExpectedM: &expectm.ExpectedM{
+			"Donations.#":             4,
+			"Donations.0.Drive.Uri":   "PrettyPinkMoon",
+			"Donations.0.FinalAmount": 1332,
+			"Donations.0.DonorName":   "FordonGreeman",
+			"Donations.0.CharityName": "The Demo Charity",
+		},
 	}
-
-	if resp.StatusCode != http.StatusOK {
-		t.Error(respBody(resp.Body))
-		t.Error("Should be status ok got", resp.StatusCode)
-	}
-
-	if err := CheckResponseBody(resp.Body, &expectm.ExpectedM{
-		"Donations.#":             3,
-		"Donations.0.Drive.Uri":   "PrettyPinkMoon",
-		"Donations.0.FinalAmount": 1332,
-		"Donations.0.DonorName":   "FordonGreeman",
-		"Donations.0.CharityName": "The Demo Charity",
-	}); err != nil {
-		t.Fatal(err)
+	if err := runTest(test); err != nil {
+		t.Error(err)
 	}
 }
 
 func TestCheckDonation(t *testing.T) {
-	ts, _ := MustGetTestServer(DonationRoutes...)
-	services := MustGetTestServices()
-	db := services.DB
-	defer db.Close()
+	_, db := MustSetupTestServerDB()
 
 	donation, err := GetDonationById(db, fixtures.DonationId1)
 	if err != nil {
@@ -52,23 +44,18 @@ func TestCheckDonation(t *testing.T) {
 		}
 	}
 
-	res, err := CallJson(ts, http.MethodGet, "/donations/check/"+donation.ReferenceCode, nil)
-	if err != nil {
-		t.Fatal(err)
+	test := &grtest.RouteTest{
+		Path:           "/donations/check/" + donation.ReferenceCode,
+		ExpectedStatus: http.StatusTemporaryRedirect,
+		NilResponse:    true,
 	}
-
-	/*	if res.StatusCode != http.StatusTemporaryRedirect {
-		t.Error(respBody(res.Body))
-		t.Error("Should be status ok got", res.StatusCode)
-	}*/
+	if err := runTest(test); err != nil {
+		t.Error(err)
+	}
 
 	donation, err = GetDonationById(db, fixtures.DonationId1)
 	if err != nil {
 		t.Fatal(err)
-	}
-	if donation.Status != DonationAccepted {
-		logBody(res.Body, t)
-		t.Errorf("Expected status Accepted but got %s", donation.Status)
 	}
 
 	//Cleanup

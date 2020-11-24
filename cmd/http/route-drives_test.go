@@ -1,10 +1,11 @@
 package main
 
 import (
-	"io"
-	"io/ioutil"
+	"fmt"
 	"net/http"
 	"testing"
+
+	grtest "github.com/Vindexus/go-router-test"
 
 	vinscraper "github.com/Vindexus/go-scraper"
 
@@ -19,112 +20,79 @@ var (
 	DriveUri = "PrettyPinkMoon"
 )
 
-func respBody(body io.Reader) string {
-	byt, err := ioutil.ReadAll(body)
-	if err != nil {
-		return err.Error()
-	}
-	return string(byt)
-}
-
 func TestGetDrives(t *testing.T) {
-	ts, _ := MustGetTestServer(
-		NewGET("/drives", getDrives),
-	)
-
-	resp, err := CallJson(ts, http.MethodGet, "/drives", nil)
-	if err != nil {
-		t.Fatal(err)
+	test := &grtest.RouteTest{
+		Path:           "/drives",
+		ExpectedStatus: http.StatusOK,
+		ExpectedM: &expectm.ExpectedM{
+			"Drives.Data.#":                3,
+			"Drives.Total":                 3,
+			"Drives.Limit":                 50,
+			"Drives.Offset":                0,
+			"Drives.Data.0.Uri":            "PrettyRedMoon",
+			"Drives.Data.0.USDAmountTotal": 31001,
+		},
 	}
-
-	if resp.StatusCode != http.StatusOK {
-		t.Error(respBody(resp.Body))
-		t.Error("Should be status ok")
-	}
-
-	if err := CheckResponseBody(resp.Body, &expectm.ExpectedM{
-		"Drives.Data.#":     1,
-		"Drives.Total":      1,
-		"Drives.Limit":      50,
-		"Drives.Offset":     0,
-		"Drives.Data.0.Uri": "PrettyPinkMoon",
-	}); err != nil {
-		t.Fatal(err)
+	if err := runTest(test); err != nil {
+		fmt.Println("resp", test.Response)
+		t.Error(err)
 	}
 }
 
 func TestGetTopDrives(t *testing.T) {
-	ts, _ := MustGetTestServer(
-		DriveRoutes...,
-	)
-
-	resp, err := CallJson(ts, http.MethodGet, "/drives/top/week", nil)
-	if err != nil {
-		t.Fatal(err)
+	test := &grtest.RouteTest{
+		Path:           "/drives/top/week",
+		ExpectedStatus: http.StatusOK,
+		ExpectedM: &expectm.ExpectedM{
+			"Drives.#":                 3,
+			"Drives.0.Uri":             "PrettyRedMoon",
+			"Drives.0.TopAmount":       31001,
+			"Drives.2.TopNumDonations": 1,
+		},
 	}
-
-	if resp.StatusCode != http.StatusOK {
-		t.Error(respBody(resp.Body))
-		t.Error("Should be status ok but got", resp.StatusCode)
-	}
-
-	if err := CheckResponseBody(resp.Body, &expectm.ExpectedM{
-		"Drives.#":                 1,
-		"Drives.0.Uri":             "PrettyPinkMoon",
-		"Drives.0.TopAmount":       32333,
-		"Drives.0.TopNumDonations": 2, // Only 2 are accepted in last 7 days
-		"Drives.0.NumDonations":    3, // 3 total
-	}); err != nil {
+	if err := runTest(test); err != nil {
 		t.Error(err)
 	}
 }
 
 func TestGetDrive(t *testing.T) {
-	ts, _ := MustGetTestServer(
-		DriveRoutes...,
-	)
-	resp, err := CallJson(ts, http.MethodGet, "/drive/"+DriveUri, nil)
-	if err != nil {
-		t.Fatal(err)
+	test := &grtest.RouteTest{
+		Path:           "/drive/" + DriveUri,
+		ExpectedStatus: http.StatusOK,
+		ExpectedM: &expectm.ExpectedM{
+			"Drive.Id":                   DriveId,
+			"Drive.Uri":                  DriveUri,
+			"Drive.NumDonations":         2,
+			"RecentDonations.#":          2,
+			"TopDonations.#":             2,
+			"TopDonations.0.CharityName": "The Demo Charity",
+		},
 	}
-	if resp.StatusCode != http.StatusOK {
-		t.Error(respBody(resp.Body))
-		t.Error("Should be status ok got", resp.StatusCode)
-	}
-
-	if err := CheckResponseBody(resp.Body, &expectm.ExpectedM{
-		"Drive.Id":                   DriveId,
-		"Drive.Uri":                  DriveUri,
-		"Drive.NumDonations":         3,
-		"RecentDonations.#":          3,
-		"TopDonations.#":             3,
-		"TopDonations.0.CharityName": "The Demo Charity",
-	}); err != nil {
-		t.Fatal(err)
+	if err := runTest(test); err != nil {
+		t.Error(err)
 	}
 }
 
 func TestCreateDrive(t *testing.T) {
-	ts, _ := MustGetTestServer(
-		DriveRoutes...,
-	)
+	_, db := MustSetupTestServerDB()
 
-	type test struct {
-		Payload        interface{}
-		ExpectedM      *expectm.ExpectedM
-		ExpectedStatus int
+	test := &grtest.RouteTest{
+		Path:   "/drive",
+		Method: http.MethodPost,
 	}
 
-	tests := []test{
+	tests := test.Apply([]*grtest.RouteTest{
 		{
-			Payload:        nil,
+			Body: altrudos.FlatMap{
+				"SourceUrl": "",
+			},
 			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
 				"RawError": vinscraper.ErrSourceInvalidURL.Error(),
 			},
 		},
 		{
-			Payload: altrudos.FlatMap{
+			Body: altrudos.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
 			},
 			ExpectedStatus: http.StatusBadRequest,
@@ -133,7 +101,7 @@ func TestCreateDrive(t *testing.T) {
 			},
 		},
 		{
-			Payload: altrudos.FlatMap{
+			Body: altrudos.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
 				"SubmittedDonation": altrudos.M{
 					"Amount": "twenty bucks",
@@ -145,7 +113,7 @@ func TestCreateDrive(t *testing.T) {
 			},
 		},
 		{
-			Payload: altrudos.FlatMap{
+			Body: altrudos.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
 				"SubmittedDonation": altrudos.M{
 					"Amount": "-100.50",
@@ -157,7 +125,7 @@ func TestCreateDrive(t *testing.T) {
 			},
 		},
 		{
-			Payload: altrudos.FlatMap{
+			Body: altrudos.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
 				"SubmittedDonation": altrudos.M{
 					"Amount": "100.50",
@@ -169,7 +137,7 @@ func TestCreateDrive(t *testing.T) {
 			},
 		},
 		{
-			Payload: altrudos.FlatMap{
+			Body: altrudos.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
 				"SubmittedDonation": altrudos.M{
 					"CharityId": fixtures.CharityId1,
@@ -182,7 +150,7 @@ func TestCreateDrive(t *testing.T) {
 			},
 		},
 		{
-			Payload: altrudos.FlatMap{
+			Body: altrudos.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
 				"SubmittedDonation": altrudos.M{
 					"CharityId": fixtures.CharityId1,
@@ -196,7 +164,7 @@ func TestCreateDrive(t *testing.T) {
 			},
 		},
 		{
-			Payload: altrudos.FlatMap{
+			Body: altrudos.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
 				"SubmittedDonation": altrudos.M{
 					"CharityId": fixtures.CharityId1,
@@ -207,7 +175,7 @@ func TestCreateDrive(t *testing.T) {
 			ExpectedStatus: http.StatusOK,
 		},
 		{
-			Payload: altrudos.FlatMap{
+			Body: altrudos.FlatMap{
 				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
 				"SubmittedDonation": altrudos.M{
 					"CharityId": fixtures.CharityId1,
@@ -218,26 +186,11 @@ func TestCreateDrive(t *testing.T) {
 			},
 			ExpectedStatus: http.StatusOK,
 		},
+	})
+
+	if err := runTests(tests); err != nil {
+		t.Fatal(err)
 	}
-
-	for i, test := range tests {
-		resp, err := CallJson(ts, http.MethodPost, "/drive", test.Payload)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if resp.StatusCode != test.ExpectedStatus {
-			t.Errorf("[%d] Status should be %d but got %d", i, test.ExpectedStatus, resp.StatusCode)
-			t.Error(respBody(resp.Body))
-		}
-
-		if test.ExpectedM != nil {
-			if err := CheckResponseBody(resp.Body, test.ExpectedM); err != nil {
-				t.Errorf("[%d] %s", i, err)
-			}
-		}
-	}
-
-	db := altrudos.GetTestDb()
 
 	dono, err := altrudos.GetDonationByField(db, "donor_name", "Elder")
 	if err != nil {
@@ -260,19 +213,17 @@ func TestCreateDrive(t *testing.T) {
 }
 
 func TestCreateDriveDonation(t *testing.T) {
-	ts, _ := MustGetTestServer(
-		DriveRoutes...,
-	)
+	_, db := MustSetupTestServerDB()
 
-	type test struct {
-		Payload        interface{}
-		ExpectedM      *expectm.ExpectedM
-		ExpectedStatus int
+	test := &grtest.RouteTest{
+		Path:   "/drive/" + DriveId + "/donate",
+		Method: http.MethodPost,
 	}
 
-	tests := []test{
+	tests := test.Apply([]*grtest.RouteTest{
+
 		{
-			Payload: altrudos.FlatMap{
+			Body: altrudos.FlatMap{
 				"SubmittedDonation": altrudos.M{
 					"Amount": "twenty bucks",
 				},
@@ -283,7 +234,7 @@ func TestCreateDriveDonation(t *testing.T) {
 			},
 		},
 		{
-			Payload: altrudos.FlatMap{
+			Body: altrudos.FlatMap{
 				"SubmittedDonation": altrudos.M{
 					"Amount": "-100.50",
 				},
@@ -294,7 +245,7 @@ func TestCreateDriveDonation(t *testing.T) {
 			},
 		},
 		{
-			Payload: altrudos.FlatMap{
+			Body: altrudos.FlatMap{
 				"SubmittedDonation": altrudos.M{
 					"Amount": "100.50",
 				},
@@ -305,7 +256,7 @@ func TestCreateDriveDonation(t *testing.T) {
 			},
 		},
 		{
-			Payload: altrudos.FlatMap{
+			Body: altrudos.FlatMap{
 				"SubmittedDonation": altrudos.M{
 					"CharityId": fixtures.CharityId1,
 					"Amount":    "100.50",
@@ -317,7 +268,7 @@ func TestCreateDriveDonation(t *testing.T) {
 			},
 		},
 		{
-			Payload: altrudos.FlatMap{
+			Body: altrudos.FlatMap{
 				"SubmittedDonation": altrudos.M{
 					"CharityId": fixtures.CharityId1,
 					"Amount":    "100.50",
@@ -330,7 +281,7 @@ func TestCreateDriveDonation(t *testing.T) {
 			},
 		},
 		{
-			Payload: altrudos.FlatMap{
+			Body: altrudos.FlatMap{
 				"SubmittedDonation": altrudos.M{
 					"CharityId": fixtures.CharityId1,
 					"Amount":    "100.87",
@@ -340,7 +291,7 @@ func TestCreateDriveDonation(t *testing.T) {
 			ExpectedStatus: http.StatusOK,
 		},
 		{
-			Payload: altrudos.FlatMap{
+			Body: altrudos.FlatMap{
 				"SubmittedDonation": altrudos.M{
 					"CharityId": fixtures.CharityId1,
 					"Amount":    "100.87",
@@ -350,26 +301,12 @@ func TestCreateDriveDonation(t *testing.T) {
 			},
 			ExpectedStatus: http.StatusOK,
 		},
+	})
+
+	if err := runTests(tests); err != nil {
+		t.Error(err)
 	}
 
-	for i, test := range tests {
-		resp, err := CallJson(ts, http.MethodPost, "/drive/"+DriveId+"/donate", test.Payload)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if resp.StatusCode != test.ExpectedStatus {
-			t.Errorf("[%d] Status should be %d but got %d", i, test.ExpectedStatus, resp.StatusCode)
-			t.Error(respBody(resp.Body))
-		}
-
-		if test.ExpectedM != nil {
-			if err := CheckResponseBody(resp.Body, test.ExpectedM); err != nil {
-				t.Errorf("[%d] %s", i, err)
-			}
-		}
-	}
-
-	db := altrudos.GetTestDb()
 	// Should find one with name
 	dono, err := altrudos.GetDonationByField(db, "donor_name", "Shaper")
 	if err != nil {
@@ -384,5 +321,4 @@ func TestCreateDriveDonation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 }
