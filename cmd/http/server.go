@@ -44,7 +44,7 @@ func (s *Server) ParseFlags() error {
 	return nil
 }
 
-func (s *Server) AddRoutes(rs ...[]*gorouter.Route) error {
+func (s *Server) AddRoutes(rs ...[]gorouter.Route) error {
 	if s.R == nil {
 		s.R = gorouter.NewRouter()
 	}
@@ -90,7 +90,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	route.HandlerFunc(&RouteContext{
+
+	route.GetHandler()(&RouteContext{
 		Services:     s.S,
 		RouteContext: *ctx,
 		Config:       s.Config,

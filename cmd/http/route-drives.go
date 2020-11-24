@@ -7,7 +7,7 @@ import (
 	"github.com/cyc-ttn/gorouter"
 )
 
-var DriveRoutes = []*gorouter.Route{
+var DriveRoutes = []gorouter.Route{
 	NewGET("/drives", getDrives),
 	NewGET("/drives/top/:range", getTopDrives),
 	NewGET("/drive/:uri", getDrive),

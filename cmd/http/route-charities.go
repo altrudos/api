@@ -19,7 +19,7 @@ var (
 	GetCharityRoute           = NewGET("/charity/:id", getById("id", "Charity", getCharity))
 )
 
-var CharityRoutes = []*gorouter.Route{
+var CharityRoutes = []gorouter.Route{
 	GetCharitiesRoute,
 	GetFeaturedCharitiesRoute,
 	GetCharityRoute,

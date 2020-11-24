@@ -7,7 +7,7 @@ import (
 	"github.com/cyc-ttn/gorouter"
 )
 
-var DonationRoutes = []*gorouter.Route{
+var DonationRoutes = []gorouter.Route{
 	NewGET("/donations/recent", getDonationsRecent),
 	NewGET("/donations/check/:reference", checkDonation),
 }

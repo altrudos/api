@@ -6,7 +6,7 @@ require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Masterminds/squirrel v1.4.0
 	github.com/Vindexus/go-scraper v0.0.0-20201103231651-83306f23e84b
-	github.com/cyc-ttn/gorouter v0.0.0-20200422002054-cb856ca5b2ce
+	github.com/cyc-ttn/gorouter v0.0.0-20200507200123-e696575c3f73
 	github.com/gookit/color v1.3.2
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.8.0
