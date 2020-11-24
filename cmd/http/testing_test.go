@@ -21,7 +21,7 @@ var (
 	TestConfigPath = os.Getenv("TESTCONFIG")
 )
 
-func MustGetTestServer(routes ...*gorouter.Route) (*httptest.Server, *Services) {
+func MustGetTestServer(routes ...gorouter.Route) (*httptest.Server, *Services) {
 	s := &Server{
 		S:      MustGetTestServices(),
 		R:      gorouter.NewRouter(),

@@ -1,17 +1,15 @@
 package main
 
+import "flag"
+
 func main() {
-	s := &Server{}
-	if err := s.ParseFlags(); err != nil {
+	var confFile string
+	flag.StringVar(&confFile, "config", "", "Configuration File")
+	flag.Parse()
+	s, err := NewServerFromConfigFile(confFile)
+	if err != nil {
 		panic(err)
 	}
-
-	s.AddRoutes(
-		CharityRoutes,
-		DonationRoutes,
-		DriveRoutes,
-	)
-
 	if err := s.Run(); err != nil {
 		panic(err)
 	}

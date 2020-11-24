@@ -3,8 +3,9 @@ package altrudos
 import (
 	"errors"
 	"fmt"
-	errs "github.com/pkg/errors"
 	"os"
+
+	errs "github.com/pkg/errors"
 
 	"github.com/BurntSushi/toml"
 	"github.com/jmoiron/sqlx"
@@ -13,12 +14,13 @@ import (
 )
 
 var (
-	ErrInvalidJGMode = errors.New("invalid justgiving mode")
+	ErrInvalidJGMode       = errors.New("invalid justgiving mode")
 	ErrBlankConfigFilePath = errors.New("config file path is blank, check your env vars")
 )
 
 type Config struct {
 	Postgres   string
+	Port       int
 	JustGiving JGConfig
 	WebsiteUrl string // Frontend
 	BaseUrl    string //backend

@@ -2,46 +2,54 @@ package main
 
 import (
 	"errors"
-	"flag"
+	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/cyc-ttn/gorouter"
 
 	. "github.com/altrudos/api"
 )
 
-var ErrNoConfig = errors.New("-config flag missing")
+var (
+	ErrBlankConfigPath = errors.New("config file path is blank")
+	ErrNoPort          = errors.New("port in config is empty")
+)
 
 type Server struct {
-	Port   int
 	S      *Services
 	Config *Config
 	R      *gorouter.RouterNode
 }
 
-func (s *Server) ParseFlags() error {
-	var confFile string
-	flag.IntVar(&s.Port, "port", 8080, "Server port")
-	flag.StringVar(&confFile, "config", "", "Configuration File")
-	flag.Parse()
+func NewServer(config *Config) (*Server, error) {
+	services, err := config.Connect()
+	if err != nil {
+		return nil, err
+	}
+	s := &Server{}
+	s.S = services
+	s.Config = config
 
+	s.AddRoutes(
+		CharityRoutes,
+		DonationRoutes,
+		DriveRoutes,
+	)
+
+	return s, nil
+}
+
+func NewServerFromConfigFile(confFile string) (*Server, error) {
 	if confFile == "" {
-		return ErrNoConfig
+		return nil, ErrBlankConfigPath
 	}
 
 	config, err := ParseConfig(confFile)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	services, err := config.Connect()
-	if err != nil {
-		return err
-	}
-	s.S = services
-	s.Config = config
-	return nil
+	return NewServer(config)
 }
 
 func (s *Server) AddRoutes(rs ...[]gorouter.Route) error {
@@ -59,8 +67,11 @@ func (s *Server) AddRoutes(rs ...[]gorouter.Route) error {
 }
 
 func (s *Server) Run() error {
-	log.Printf("Starting server on port %d", s.Port)
-	return http.ListenAndServe(":"+strconv.Itoa(s.Port), s)
+	if s.Config.Port == 0 {
+		return ErrNoPort
+	}
+	log.Printf("Starting server on port %d", s.Config.Port)
+	return http.ListenAndServe(fmt.Sprintf(":%d", s.Config.Port), s)
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
