@@ -120,7 +120,7 @@ func getFeaturedCharities(c *RouteContext) {
 	cond.OrderBys = GetSortFromQueryWithDefault(c.Query, CharityColMap, []string{"-total"})
 	cond.OrderBys = append(cond.OrderBys, "feature_score DESC")
 
-	var xs []*Charity
+	xs := make([]*Charity, 0)
 	defaultGetAll(c, "Charities", ViewFeaturedCharities, &xs, cond)
 }
 
