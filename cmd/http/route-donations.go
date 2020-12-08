@@ -10,6 +10,23 @@ import (
 var DonationRoutes = []gorouter.Route{
 	NewGET("/donations/recent", getDonationsRecent),
 	NewGET("/donations/check/:reference", checkDonation),
+	NewGET("/donations/byref/:reference", getDonationByRef),
+}
+
+func getDonationByRef(c *RouteContext) {
+	donation, err := GetDonationByReferenceCode(c.DB, c.Params["reference"])
+	if c.HandledError(err) {
+		return
+	}
+
+	drive, err := GetDriveById(c.DB, donation.DriveId)
+	if c.HandledError(err) {
+		return
+	}
+	c.JSON(http.StatusOK, M{
+		"Donation": donation,
+		"Drive":    drive,
+	})
 }
 
 func getDonationsRecent(c *RouteContext) {

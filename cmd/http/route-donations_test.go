@@ -62,3 +62,24 @@ func TestCheckDonation(t *testing.T) {
 	donation.Status = DonationPending
 	saveDonation()
 }
+
+func TestGetDonation(t *testing.T) {
+	_, db := MustSetupTestServerDB()
+
+	donation, err := GetDonationById(db, fixtures.DonationId1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	test := &grtest.RouteTest{
+		Path:           "/donations/byref/" + donation.ReferenceCode,
+		ExpectedStatus: http.StatusOK,
+		ExpectedM: &expectm.ExpectedM{
+			"Donation.Id": fixtures.DonationId1,
+			"Drive.Uri":   fixtures.DriveUri,
+		},
+	}
+	if err := runTest(test); err != nil {
+		t.Error(err)
+	}
+}
