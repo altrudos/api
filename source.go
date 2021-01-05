@@ -3,6 +3,7 @@ package altrudos
 import (
 	"encoding/json"
 	"errors"
+
 	vinscraper "github.com/Vindexus/go-scraper"
 )
 
@@ -10,10 +11,9 @@ var (
 	ErrSourceInvalidReddit = errors.New("Unrecognized reddit link format")
 )
 
-
 type Source struct {
 	Type string
-	Key string
+	Key  string
 	Meta FlatMap
 }
 
@@ -24,12 +24,9 @@ func NewScraper() *vinscraper.Scraping {
 			&vinscraper.RedditScraper{
 				UserAgent: "altrudos-1.0",
 			},
-			&vinscraper.ScraperGeneric{
-
-			},
+			&vinscraper.ScraperGeneric{},
 		},
-		TitleReplacers: []vinscraper.ScrapeReplacer{
-		},
+		TitleReplacers: []vinscraper.ScrapeReplacer{},
 	}
 }
 
@@ -51,9 +48,18 @@ func ParseSourceURL(urlStr string) (*Source, error) {
 		return nil, err
 	}
 
+	// Some of the standard stuff the scraper returns is part
+	// of the generic ScrapeInfo object, and not necessarily stored
+	// in the meta object
+	// For example a reddit post has the title in info.Title, and not in meta["Title"]
+	// we need to copy this over because we only deal with the Meta in Altrudos
+	if _, ok := meta["Title"]; !ok {
+		meta["Title"] = info.Title
+	}
+
 	s := Source{
 		Type: string(info.SourceType),
-		Key: info.SourceKey,
+		Key:  info.SourceKey,
 		Meta: meta,
 	}
 

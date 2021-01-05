@@ -185,6 +185,24 @@ func TestCreateDrive(t *testing.T) {
 				},
 			},
 			ExpectedStatus: http.StatusOK,
+			ExpectedM: &expectm.ExpectedM{
+				"Drive.SourceMeta.Title": "Comment by undercooktheonionz",
+			},
+		},
+		{
+			Body: altrudos.FlatMap{
+				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/",
+				"SubmittedDonation": altrudos.M{
+					"CharityId": fixtures.CharityId1,
+					"Amount":    "100.50",
+					"Currency":  "eur",
+					"DonorName": "Elder",
+				},
+			},
+			ExpectedStatus: http.StatusOK,
+			ExpectedM: &expectm.ExpectedM{
+				"Drive.SourceMeta.Title": "Why waste time say lot word when few word do trick",
+			},
 		},
 	})
 
@@ -206,7 +224,7 @@ func TestCreateDrive(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = db.Exec("DELETE FROM "+altrudos.TableDrives+" WHERE source_key = $1", "fmgtyqq")
+	_, err = db.Exec("DELETE FROM "+altrudos.TableDrives+" WHERE source_key = $1 OR source_key = $2", "fmgtyqq", "fv3vz0")
 	if err != nil {
 		t.Fatal(err)
 	}
