@@ -204,6 +204,18 @@ func TestCreateDrive(t *testing.T) {
 				"Drive.SourceMeta.Title": "Why waste time say lot word when few word do trick",
 			},
 		},
+		{
+			Body: altrudos.FlatMap{
+				"SourceUrl": "https://www.ironswornrpg.com/",
+				"SubmittedDonation": altrudos.M{
+					"CharityId": fixtures.CharityId1,
+					"Amount":    "100.50",
+					"Currency":  "eur",
+					"DonorName": "Elder",
+				},
+			},
+			ExpectedStatus: http.StatusOK,
+		},
 	})
 
 	if err := runTests(tests); err != nil {

@@ -53,8 +53,10 @@ func ParseSourceURL(urlStr string) (*Source, error) {
 	// in the meta object
 	// For example a reddit post has the title in info.Title, and not in meta["Title"]
 	// we need to copy this over because we only deal with the Meta in Altrudos
-	if _, ok := meta["Title"]; !ok {
-		meta["Title"] = info.Title
+	if meta != nil {
+		if _, ok := meta["Title"]; !ok {
+			meta["Title"] = info.Title
+		}
 	}
 
 	s := Source{
