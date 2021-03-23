@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	grtest "github.com/Vindexus/go-router-test"
-
-	vinscraper "github.com/Vindexus/go-scraper"
 
 	altrudos "github.com/altrudos/api"
 	"github.com/altrudos/api/pkg/fixtures"
@@ -81,14 +80,26 @@ func TestCreateDrive(t *testing.T) {
 		Method: http.MethodPost,
 	}
 
+	validDonation := altrudos.M{
+		"CharityId": fixtures.CharityId1,
+		"Amount":    "100.50",
+		"Currency":  "eur",
+		"DonorName": "Elder",
+	}
+
+	mostRecent := db.QueryRow("SELECT MAX(created_at) FROM " + altrudos.TableDrives)
+	var recent time.Time
+	mostRecent.Scan(&recent)
+
 	tests := test.Apply([]*grtest.RouteTest{
 		{
 			Body: altrudos.FlatMap{
-				"SourceUrl": "",
+				"SourceUrl":         "",
+				"SubmittedDonation": validDonation,
 			},
 			ExpectedStatus: http.StatusBadRequest,
 			ExpectedM: &expectm.ExpectedM{
-				"RawError": vinscraper.ErrSourceInvalidURL.Error(),
+				"RawError": altrudos.ErrNoSourceUrl.Error(),
 			},
 		},
 		{
@@ -176,45 +187,75 @@ func TestCreateDrive(t *testing.T) {
 		},
 		{
 			Body: altrudos.FlatMap{
-				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
-				"SubmittedDonation": altrudos.M{
-					"CharityId": fixtures.CharityId1,
-					"Amount":    "100.50",
-					"Currency":  "eur",
-					"DonorName": "Elder",
-				},
+				"SourceUrl":         "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/fmgtyqq/",
+				"SubmittedDonation": validDonation,
 			},
 			ExpectedStatus: http.StatusOK,
 			ExpectedM: &expectm.ExpectedM{
-				"Drive.SourceMeta.Title": "Comment by undercooktheonionz",
+				"Drive.SourceType":           "reddit_post",
+				"Drive.SourceMeta.Subreddit": "DunderMifflin",
 			},
 		},
 		{
 			Body: altrudos.FlatMap{
-				"SourceUrl": "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/",
-				"SubmittedDonation": altrudos.M{
-					"CharityId": fixtures.CharityId1,
-					"Amount":    "100.50",
-					"Currency":  "eur",
-					"DonorName": "Elder",
-				},
+				"SourceUrl":         "https://www.reddit.com/r/DunderMifflin/comments/fv3vz0/why_waste_time_say_lot_word_when_few_word_do_trick/",
+				"SubmittedDonation": validDonation,
 			},
 			ExpectedStatus: http.StatusOK,
 			ExpectedM: &expectm.ExpectedM{
-				"Drive.SourceMeta.Title": "Why waste time say lot word when few word do trick",
+				"Drive.SourceType":           "reddit_post",
+				"Drive.SourceMeta.Subreddit": "DunderMifflin",
 			},
 		},
 		{
 			Body: altrudos.FlatMap{
-				"SourceUrl": "https://www.ironswornrpg.com/",
-				"SubmittedDonation": altrudos.M{
-					"CharityId": fixtures.CharityId1,
-					"Amount":    "100.50",
-					"Currency":  "eur",
-					"DonorName": "Elder",
-				},
+				"SourceUrl":         "https://www.ironswornrpg.com/",
+				"SubmittedDonation": validDonation,
 			},
 			ExpectedStatus: http.StatusOK,
+			ExpectedM: &expectm.ExpectedM{
+				"Drive.SourceType": "site",
+			},
+		},
+		{
+			Body: altrudos.FlatMap{
+				"SourceUrl":         "https://www.ironswornrpg.com",
+				"SubmittedDonation": validDonation,
+			},
+			ExpectedStatus: http.StatusOK,
+			ExpectedM: &expectm.ExpectedM{
+				"Drive.SourceType": altrudos.SourceTypeLink,
+			},
+		},
+		{
+			Body: altrudos.FlatMap{
+				"SourceUrl":         "https://www.ironswornrpg.com",
+				"SubmittedDonation": validDonation,
+			},
+			ExpectedStatus: http.StatusOK,
+			ExpectedM: &expectm.ExpectedM{
+				"Drive.SourceType": altrudos.SourceTypeLink,
+			},
+		},
+		{
+			Body: altrudos.FlatMap{
+				"SourceUrl":         "https://www.youtube.com/channel/UCrTNhL_yO3tPTdQ5XgmmWjA",
+				"SubmittedDonation": validDonation,
+			},
+			ExpectedStatus: http.StatusOK,
+			ExpectedM: &expectm.ExpectedM{
+				"Drive.SourceType": altrudos.SourceTypeYouTubeChannel,
+			},
+		},
+		{
+			Body: altrudos.FlatMap{
+				"SourceUrl":         "https://www.youtube.com/watch?v=vNp3Q0AfXRg&t=2330s",
+				"SubmittedDonation": validDonation,
+			},
+			ExpectedStatus: http.StatusOK,
+			ExpectedM: &expectm.ExpectedM{
+				"Drive.SourceType": altrudos.SourceTypeYouTubeVideo,
+			},
 		},
 	})
 
@@ -231,12 +272,7 @@ func TestCreateDrive(t *testing.T) {
 	}
 
 	// Cleanup
-	_, err = db.Exec("DELETE FROM " + altrudos.TableDonations + " WHERE donor_amount = 10050 AND donor_currency = 'EUR'")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	_, err = db.Exec("DELETE FROM "+altrudos.TableDrives+" WHERE source_key = $1 OR source_key = $2", "fmgtyqq", "fv3vz0")
+	_, err = db.Exec("DELETE FROM "+altrudos.TableDrives+"WHERE created_at > $1", mostRecent)
 	if err != nil {
 		t.Fatal(err)
 	}

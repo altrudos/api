@@ -2,6 +2,7 @@ package altrudos
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -39,12 +40,9 @@ func (nd *NewDrive) Process(ext sqlx.Ext) error {
 // Based on what the user has submitted, this will either find an existing drive
 // for that same source or create a new drive if none is found
 func (nd *NewDrive) FetchOrCreateDrive(ext sqlx.Ext) (*Drive, error) {
-	source, err := ParseSourceURL(nd.SourceUrl)
-	if err != nil {
-		return nil, err
-	}
-
-	drive, err := GetDriveBySource(ext, source)
+	drive, err := GetDriveBySourceUrl(ext, nd.SourceUrl)
+	fmt.Println("drive", drive)
+	fmt.Println("err", err)
 	if err != nil {
 		return nil, err
 	} else if drive != nil {

@@ -1,69 +1,103 @@
 package altrudos
 
 import (
-	"encoding/json"
-	"errors"
-
-	vinscraper "github.com/Vindexus/go-scraper"
+	"fmt"
+	"net/url"
+	"regexp"
+	"strings"
 )
 
-var (
-	ErrSourceInvalidReddit = errors.New("Unrecognized reddit link format")
+const (
+	SourceTypeLink = "link"
+
+	SourceTypeRedditPost = "reddit_post"
+
+	SourceTypeYouTubeVideo   = "youtube_video"
+	SourceTypeYouTubeChannel = "youtube_channel"
 )
 
 type Source struct {
 	Type string
-	Key  string
 	Meta FlatMap
 }
 
-func NewScraper() *vinscraper.Scraping {
-	return &vinscraper.Scraping{
-		// The order matters
-		Scrapers: []vinscraper.Scraper{
-			&vinscraper.RedditScraper{
-				UserAgent: "altrudos-1.0",
-			},
-			&vinscraper.ScraperGeneric{},
+type DomainMatcher struct {
+	Hosts []string
+	Parse func(link *url.URL) (*Source, error)
+}
+
+func DefaultSource(link *url.URL) (*Source, error) {
+	return &Source{
+		Type: SourceTypeLink,
+	}, nil
+}
+
+var DomainMatchers = []DomainMatcher{
+	{
+		Hosts: []string{"reddit.com", "redd.it"},
+		Parse: func(link *url.URL) (*Source, error) {
+			subreddit := regexp.MustCompile("\\/r\\/([a-zA-Z]+)\\/?")
+			match := subreddit.FindAllString(link.String(), -1)
+
+			// TODO: Check for comment
+
+			if len(match) == 1 {
+				return &Source{
+					Type: SourceTypeRedditPost,
+					Meta: FlatMap{
+						"subreddit": match[0],
+					},
+				}, nil
+			}
+
+			return DefaultSource(link)
 		},
-		TitleReplacers: []vinscraper.ScrapeReplacer{},
-	}
+	},
+	{
+		Hosts: []string{"youtube.com", "youtu.be"},
+		Parse: func(link *url.URL) (*Source, error) {
+			if link.Query().Get("v") != "" {
+				return &Source{
+					Type: SourceTypeYouTubeVideo,
+				}, nil
+			}
+
+			if strings.Contains(link.Path, "/channel/") {
+				return &Source{
+					Type: SourceTypeYouTubeChannel,
+				}, nil
+			}
+
+			return DefaultSource(link)
+		},
+	},
 }
 
 func ParseSourceURL(urlStr string) (*Source, error) {
-	scraper := NewScraper()
-
-	info, err := scraper.Scrape(urlStr)
+	fmt.Println("urlStr", urlStr)
+	parsed, err := url.Parse(urlStr)
+	fmt.Println("parsed", parsed)
+	fmt.Println("err", err)
 	if err != nil {
 		return nil, err
 	}
 
-	// Conver the interface into a regular flatmap
-	meta := FlatMap{}
-	bytes, err := json.Marshal(info.Meta)
-	if err != nil {
-		return nil, err
-	}
-	if err := json.Unmarshal(bytes, &meta); err != nil {
-		return nil, err
-	}
-
-	// Some of the standard stuff the scraper returns is part
-	// of the generic ScrapeInfo object, and not necessarily stored
-	// in the meta object
-	// For example a reddit post has the title in info.Title, and not in meta["Title"]
-	// we need to copy this over because we only deal with the Meta in Altrudos
-	if meta != nil {
-		if _, ok := meta["Title"]; !ok {
-			meta["Title"] = info.Title
+	for _, dm := range DomainMatchers {
+		found := false
+		for _, domain := range dm.Hosts {
+			if parsed.Host == domain {
+				found = true
+				break
+			}
 		}
+		if !found {
+			continue
+		}
+
+		return dm.Parse(parsed)
 	}
 
-	s := Source{
-		Type: string(info.SourceType),
-		Key:  info.SourceKey,
-		Meta: meta,
-	}
-
-	return &s, nil
+	return &Source{
+		Type: "link",
+	}, nil
 }

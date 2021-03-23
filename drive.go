@@ -2,6 +2,7 @@ package altrudos
 
 import (
 	"database/sql"
+	"errors"
 	"strings"
 	"time"
 
@@ -22,13 +23,16 @@ var (
 	DriveSelectBuilder = QueryBuilder.Select("*").From(ViewDrives)
 )
 
+var (
+	ErrNoSourceUrl = errors.New("source URL is missing")
+)
+
 type Drive struct {
 	Amount     int
 	CreatedAt  time.Time `db:"created_at"`
 	Id         string    `setmap:"omitinsert"`
 	Source     *Source   `db:"-"`
 	SourceUrl  string    `db:"source_url"`
-	SourceKey  string    `db:"source_key"`
 	SourceType string    `db:"source_type"`
 	SourceMeta FlatMap   `db:"source_meta"`
 	Uri        string
@@ -87,6 +91,7 @@ func GetTopDrives(db sqlx.Queryer) ([]*DriveTallied, error) {
 	if err := dbUtil.Select(db, &drives, qry); err != nil {
 		return nil, err
 	}
+
 	return drives, nil
 }
 
@@ -155,20 +160,12 @@ func GetOrCreateDriveBySourceUrl(ext sqlx.Ext, url string) (*Drive, error) {
 }
 
 func GetDriveBySourceUrl(q sqlx.Queryer, url string) (*Drive, error) {
-	source, err := ParseSourceURL(url)
-	if err != nil {
-		return nil, err
-	}
-	return GetDriveBySource(q, source)
-}
-
-func GetDriveBySource(q sqlx.Queryer, source *Source) (*Drive, error) {
 	eq := squirrel.Eq{
-		"source_type": source.Type,
-		"source_key":  source.Key,
+		"source_url": url,
 	}
 	return GetDrive(q, eq)
 }
+
 func CreatedDriveBySourceUrl(ext sqlx.Ext, url string) (*Drive, error) {
 	source, err := ParseSourceURL(url)
 	if err != nil {
@@ -178,7 +175,6 @@ func CreatedDriveBySourceUrl(ext sqlx.Ext, url string) (*Drive, error) {
 	drive := &Drive{
 		Source:     source,
 		SourceUrl:  url,
-		SourceKey:  source.Key,
 		SourceType: source.Type,
 		SourceMeta: meta,
 	}
@@ -198,6 +194,9 @@ func (d *Drive) Create(ext sqlx.Ext) error {
 		if err := d.GenerateUri(); err != nil {
 			return err
 		}
+	}
+	if d.SourceUrl == "" {
+		return ErrNoSourceUrl
 	}
 	d.CreatedAt = time.Now()
 	return d.Insert(ext)
