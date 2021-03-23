@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	TestConfigPath = os.Getenv("TESTCONFIG")
+	TestConfigPath = os.Getenv("ALTRUDOS_TESTCONFIG")
 )
 
 func MustGetTestServer(routes ...gorouter.Route) (*httptest.Server, *Services) {

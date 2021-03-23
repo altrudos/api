@@ -5,7 +5,7 @@ import (
 )
 
 func MustGetTestConfig() *Config {
-	filepath := GetEnv("TESTCONFIG", "config_test.toml")
+	filepath := GetEnv("ALTRUDOS_TESTCONFIG", "config_test.toml")
 	c, err := ParseConfig(filepath)
 	if err != nil {
 		panic(err)
